@@ -33,7 +33,7 @@ const INSTRUCTIONS =
   + 'a token the page is kept for a month; with a token it stays up permanently and can be '
   + 'updated in place while the link stays the same.';
 
-const server = new McpServer({ name: 'plopino', version: '0.1.4' }, { instructions: INSTRUCTIONS });
+const server = new McpServer({ name: 'plopino', version: '0.1.5' }, { instructions: INSTRUCTIONS });
 
 // 工具描述是给**模型**看的，不是给人看的——要写清楚「什么时候该用」，
 // 否则模型不知道有这个能力，集成了也不会被调用。

@@ -32,7 +32,16 @@ export async function publishFiles(files, { baseUrl = DEFAULT_BASE, token = '', 
   // 新建时链接在顶层，更新时在 board 里——统一取一次，调用方不必知道这个差别
   const url = data?.url || data?.board?.url;
   if (!res.ok || !url) {
-    throw new Error(data?.error || `Upload failed (HTTP ${res.status})`);
+    let msg = data?.error || `Upload failed (HTTP ${res.status})`;
+    // 429 的服务端原文只说「次数用完」，没说出路。匿名配额按 IP 计，而托管部署
+    // （Glama 一键部署那类）所有用户共享同一个出口 IP——撞上时 agent 需要的是
+    // 自助路径而不是「明天再试」。这段追加是给模型读的：它照着就能带用户走完。
+    if (res.status === 429) {
+      msg += ' Anonymous publishing is rate-limited per IP, and hosted deployments share one IP. '
+        + 'Fix: create a token at plopino.com/b and set PLOPINO_TOKEN — that removes the rate '
+        + 'limit and also enables private boards and in-place updates.';
+    }
+    throw new Error(msg);
   }
   return { ...data, url };
 }

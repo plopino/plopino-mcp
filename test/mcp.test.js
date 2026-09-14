@@ -205,6 +205,25 @@ test('server.json 与 package.json 必须互相对得上（官方注册表按这
   assert.equal(p.environmentVariables, undefined, '不要声明 environmentVariables，匿名发布不需要配置');
 });
 
+test('publishFiles：429 的错误要带出自助路径（agent 照着能走完，而不是「明天再试」）', async () => {
+  // 托管部署（Glama 一键部署）共享出口 IP，匿名 429 是它们的常态而非边缘情况。
+  // 服务端文案只说「次数用完」；模型读到出路（去哪拿 token、设哪个变量）才能自救。
+  const files = filesFromHtml('<h1>hi</h1>');
+  const mk429 = async () => ({
+    ok: false, status: 429,
+    text: async () => JSON.stringify({ error: 'Daily upload quota used up (1 per day).' }),
+  });
+  await assert.rejects(
+    publishFiles(files, { fetchImpl: mk429 }),
+    (err) => {
+      assert.match(err.message, /Daily upload quota used up/);
+      assert.match(err.message, /plopino\.com\/b/, '要指到 token 的获取处');
+      assert.match(err.message, /PLOPINO_TOKEN/, '要指到要设的环境变量');
+      return true;
+    },
+  );
+});
+
 test('dist 的单文件发行版与源码同步（陈旧的分发件比没有更糟）', async (t) => {
   // 用户从 plopino.com 下载的就是这个文件，它一旦没跟上源码，发出去的是旧行为，
   // 而且从外部完全看不出来。所以每次跑测试都重新构建比对。
