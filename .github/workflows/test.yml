@@ -1,0 +1,20 @@
+# 公开仓库的 CI：跑 mcp/ 的测试套件（镜像后这里就是仓库根）。
+# Glama 的 maintenance 评分里有一项 "CI status"——没有 CI 时是 "not available"，
+# 有绿灯是一项加分。测试不碰网络：路径展开边界 + 协议握手/工具列表。
+name: test
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # 全量安装（含 esbuild）：dist 同步测试要在本地重建 bundle 比对
+      - run: npm ci
+      - run: npm test
