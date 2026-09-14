@@ -20,7 +20,8 @@ Both take an optional `update_url`: pass a link returned by an earlier publish a
 content is replaced **while the link stays the same**. This needs a token (see below).
 
 Publishing is **anonymous by default**: no account, no configuration, no API key. The returned
-link is public and permanent.
+link is public; without a token the page is kept for a month, with a token it is permanent and
+can be updated in place.
 
 ## Authentication (optional)
 

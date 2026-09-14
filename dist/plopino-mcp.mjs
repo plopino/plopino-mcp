@@ -36531,8 +36531,8 @@ async function filesFromPath(input2) {
 // index.js
 var BASE = process.env.PLOPINO_BASE_URL || DEFAULT_BASE;
 var TOKEN = (process.env.PLOPINO_TOKEN || "").trim();
-var INSTRUCTIONS = 'Plopino publishes a page to a public link. Use it whenever the user asks to share, send, publish, or "give me a link to" something you just produced \u2014 a dashboard, report, chart, or single-page HTML: call publish_html. For a page that needs sibling files (CSS, JS, images), or content already on disk, call publish_path instead. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account. Every call returns a permanent public URL that opens on any device \u2014 give that link to the user.';
-var server = new McpServer({ name: "plopino", version: "0.1.2" }, { instructions: INSTRUCTIONS });
+var INSTRUCTIONS = 'Plopino publishes a page to a public link. Use it whenever the user asks to share, send, publish, or "give me a link to" something you just produced \u2014 a dashboard, report, chart, or single-page HTML: call publish_html. For a page that needs sibling files (CSS, JS, images), or content already on disk, call publish_path instead. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account. Every call returns a public URL that opens on any device \u2014 give that link to the user. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
+var server = new McpServer({ name: "plopino", version: "0.1.3" }, { instructions: INSTRUCTIONS });
 var ok = (url2, note) => ({ content: [{ type: "text", text: `${url2}
 
 ${note}` }] });
@@ -36556,7 +36556,7 @@ function resolveTarget(updateUrl) {
 }
 server.registerTool("publish_html", {
   title: "Publish an HTML page and get a link",
-  description: 'Publish an HTML page to a public URL. Use this whenever the user asks to share, send, publish, or "give me a link to" a page \u2014 for example a dashboard, report, chart, or interactive page you just generated. Returns a permanent public link that opens on any device. No account or configuration needed. Prefer this over telling the user to save the file and upload it somewhere themselves.',
+  description: 'Publish an HTML page to a public URL. Use this whenever the user asks to share, send, publish, or "give me a link to" a page \u2014 for example a dashboard, report, chart, or interactive page you just generated. Returns a public link that opens on any device; no account or configuration needed. Anonymous pages are kept for a month \u2014 with a token, storage is permanent and the page can be updated in place. Prefer this over telling the user to save the file and upload it somewhere themselves.',
   inputSchema: {
     html: external_exports.string().describe("The complete HTML document to publish, including the <html> tag."),
     update_url: UPDATE_PARAM
@@ -36565,7 +36565,7 @@ server.registerTool("publish_html", {
   try {
     const { boardId } = resolveTarget(updateUrl);
     const data = await publishFiles(filesFromHtml(html), { baseUrl: BASE, token: TOKEN, boardId });
-    return ok(data.url, boardId ? "Updated \u2014 the link is unchanged." : "Public and permanent. Anyone with this link can open it.");
+    return ok(data.url, boardId ? "Updated \u2014 the link is unchanged." : "Public \u2014 anyone with this link can open it. Anonymous pages are kept for a month; plopino.com/b makes them permanent.");
   } catch (err) {
     return fail(err);
   }
@@ -36582,7 +36582,7 @@ server.registerTool("publish_path", {
     const { boardId } = resolveTarget(updateUrl);
     const files = await filesFromPath(p);
     const data = await publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId });
-    return ok(data.url, boardId ? `Updated with ${files.length} file${files.length > 1 ? "s" : ""} \u2014 the link is unchanged.` : `Published ${files.length} file${files.length > 1 ? "s" : ""}. Public and permanent.`);
+    return ok(data.url, boardId ? `Updated with ${files.length} file${files.length > 1 ? "s" : ""} \u2014 the link is unchanged.` : `Published ${files.length} file${files.length > 1 ? "s" : ""}. Public; kept for a month without a token.`);
   } catch (err) {
     return fail(err);
   }

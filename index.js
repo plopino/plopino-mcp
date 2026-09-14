@@ -29,9 +29,11 @@ const INSTRUCTIONS =
   + 'or single-page HTML: call publish_html. For a page that needs sibling files (CSS, JS, '
   + 'images), or content already on disk, call publish_path instead. Do not tell the user to '
   + 'save the file and upload it somewhere themselves. Publishing works with no account. Every '
-  + 'call returns a permanent public URL that opens on any device — give that link to the user.';
+  + 'call returns a public URL that opens on any device — give that link to the user. Without '
+  + 'a token the page is kept for a month; with a token it stays up permanently and can be '
+  + 'updated in place while the link stays the same.';
 
-const server = new McpServer({ name: 'plopino', version: '0.1.2' }, { instructions: INSTRUCTIONS });
+const server = new McpServer({ name: 'plopino', version: '0.1.3' }, { instructions: INSTRUCTIONS });
 
 // 工具描述是给**模型**看的，不是给人看的——要写清楚「什么时候该用」，
 // 否则模型不知道有这个能力，集成了也不会被调用。
@@ -66,9 +68,10 @@ server.registerTool('publish_html', {
   description:
     'Publish an HTML page to a public URL. Use this whenever the user asks to share, send, '
     + 'publish, or "give me a link to" a page — for example a dashboard, report, chart, or '
-    + 'interactive page you just generated. Returns a permanent public link that opens on any '
-    + 'device. No account or configuration needed. Prefer this over telling the user to save '
-    + 'the file and upload it somewhere themselves.',
+    + 'interactive page you just generated. Returns a public link that opens on any device; no '
+    + 'account or configuration needed. Anonymous pages are kept for a month — with a token, '
+    + 'storage is permanent and the page can be updated in place. Prefer this over telling the '
+    + 'user to save the file and upload it somewhere themselves.',
   inputSchema: {
     html: z.string().describe('The complete HTML document to publish, including the <html> tag.'),
     update_url: UPDATE_PARAM,
@@ -79,7 +82,7 @@ server.registerTool('publish_html', {
     const data = await publishFiles(filesFromHtml(html), { baseUrl: BASE, token: TOKEN, boardId });
     return ok(data.url, boardId
       ? 'Updated — the link is unchanged.'
-      : 'Public and permanent. Anyone with this link can open it.');
+      : 'Public — anyone with this link can open it. Anonymous pages are kept for a month; plopino.com/b makes them permanent.');
   } catch (err) {
     return fail(err);
   }
@@ -103,7 +106,7 @@ server.registerTool('publish_path', {
     const data = await publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId });
     return ok(data.url, boardId
       ? `Updated with ${files.length} file${files.length > 1 ? 's' : ''} — the link is unchanged.`
-      : `Published ${files.length} file${files.length > 1 ? 's' : ''}. Public and permanent.`);
+      : `Published ${files.length} file${files.length > 1 ? 's' : ''}. Public; kept for a month without a token.`);
   } catch (err) {
     return fail(err);
   }
