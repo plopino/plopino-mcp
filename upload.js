@@ -22,7 +22,13 @@ export async function publishFiles(files, { baseUrl = DEFAULT_BASE, token = '', 
     : '/api/boards/upload';
   const res = await fetchImpl(`${baseUrl.replace(/\/+$/, '')}${route}`, {
     method: 'POST',
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    headers: {
+      // 自报家门：服务端按这个 UA 给 Umami 的 upload 事件打 source=mcp 标签，
+      // MCP 渠道的效果才和网页上传分得开。node 的默认 UA 是 "node"，认不出
+      // 也名不正——不能把别人的 Node 程序误标成我们。
+      'User-Agent': 'plopino-mcp',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: form,
     signal,
   });

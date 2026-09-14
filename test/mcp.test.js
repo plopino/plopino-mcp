@@ -154,7 +154,8 @@ test('publishFiles：有 token 才发 Authorization，更新走 board 子路由'
   // 匿名：不带 Authorization —— "不用注册"是卖点，不能被集成悄悄改成必须登录
   await publishFiles(files, { baseUrl: 'https://plopino.com', fetchImpl: fakeFetch });
   assert.equal(calls[0].url, 'https://plopino.com/api/boards/upload');
-  assert.equal(calls[0].headers, undefined, '无 token 时不该带 Authorization');
+  assert.equal(calls[0].headers.Authorization, undefined, '无 token 时不该带 Authorization');
+  assert.equal(calls[0].headers['User-Agent'], 'plopino-mcp', '要自报 UA，服务端靠它给 Umami 打 source=mcp');
 
   // 认证新建
   await publishFiles(files, { baseUrl: 'https://plopino.com/', token: 'plp_x', fetchImpl: fakeFetch });

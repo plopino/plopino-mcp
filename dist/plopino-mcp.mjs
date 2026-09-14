@@ -36486,7 +36486,13 @@ async function publishFiles(files, { baseUrl = DEFAULT_BASE, token = "", boardId
   const route = boardId ? `/api/boards/${encodeURIComponent(boardId)}/upload` : "/api/boards/upload";
   const res = await fetchImpl(`${baseUrl.replace(/\/+$/, "")}${route}`, {
     method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : void 0,
+    headers: {
+      // 自报家门：服务端按这个 UA 给 Umami 的 upload 事件打 source=mcp 标签，
+      // MCP 渠道的效果才和网页上传分得开。node 的默认 UA 是 "node"，认不出
+      // 也名不正——不能把别人的 Node 程序误标成我们。
+      "User-Agent": "plopino-mcp",
+      ...token ? { Authorization: `Bearer ${token}` } : {}
+    },
     body: form,
     signal
   });
@@ -36536,7 +36542,7 @@ async function filesFromPath(input2) {
 var BASE = process.env.PLOPINO_BASE_URL || DEFAULT_BASE;
 var TOKEN = (process.env.PLOPINO_TOKEN || "").trim();
 var INSTRUCTIONS = 'Plopino turns content into a public link \u2014 use it whenever the user asks to share, send, publish, or "give me a link to" something. An HTML page (dashboard, report, chart, or single page you just generated): call publish_html. Anything already on disk \u2014 a directory with sibling files, or any document: call publish_path. Documents are first-class: Word (doc/docx), Excel (xls/xlsx), PowerPoint and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline \u2014 the recipient opens a link and never downloads a file. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account; every call returns a public URL that opens on any device. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
-var server = new McpServer({ name: "plopino", version: "0.1.6" }, { instructions: INSTRUCTIONS });
+var server = new McpServer({ name: "plopino", version: "0.1.7" }, { instructions: INSTRUCTIONS });
 var ok = (url2, note) => ({ content: [{ type: "text", text: `${url2}
 
 ${note}` }] });
