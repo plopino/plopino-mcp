@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.plopino/plopino-mcp",
+  "title": "Plopino",
+  "description": "Drop in a page, get a link. Publish an HTML page, a file, or a folder and get a public URL — no account, no build, no config.",
+  "version": "0.1.2",
+  "websiteUrl": "https://plopino.com",
+  "repository": {
+    "url": "https://github.com/plopino/plopino-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "plopino",
+      "version": "0.1.2",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

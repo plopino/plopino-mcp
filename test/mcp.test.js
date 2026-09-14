@@ -188,6 +188,23 @@ test('版本号只有一处真相：package.json 与 index.js 必须一致', asy
   assert.equal(m[1], pkg.version, 'index.js 与 package.json 的版本号不一致');
 });
 
+test('server.json 与 package.json 必须互相对得上（官方注册表按这个验归属）', async () => {
+  // 注册表拿「已发布的那个 npm 包里的 package.json」跟提交的 server.json 比对：
+  // mcpName 要等于 server.json 的 name，两边的版本也要等于包版本。对不上时
+  // publish 会失败——但最难查的是「发出去了却验不过」，那样目录里就是一条坏记录。
+  const pkg = JSON.parse(await readFile(path.join(DIR, '..', 'package.json'), 'utf8'));
+  const s = JSON.parse(await readFile(path.join(DIR, '..', 'server.json'), 'utf8'));
+  assert.equal(s.name, pkg.mcpName, 'server.json 的 name 与 package.json 的 mcpName 不一致');
+  assert.equal(s.version, pkg.version, 'server.json 与 package.json 的版本号不一致');
+  assert.equal(s.packages.length, 1, '只发 npm 一个包，多出来的来源要一并核对');
+  const [p] = s.packages;
+  assert.equal(p.identifier, pkg.name, 'server.json 里的包名与实际 npm 包名不一致');
+  assert.equal(p.version, pkg.version, 'server.json 指向的包版本不是当前版本');
+  assert.equal(p.transport.type, 'stdio', '传输方式变了要同步改（客户端按这个生成启动命令）');
+  // PLOPINO_TOKEN 是可选的：标成必填会让目录以为不配 key 就用不了，正对着产品主张
+  assert.equal(p.environmentVariables, undefined, '不要声明 environmentVariables，匿名发布不需要配置');
+});
+
 test('dist 的单文件发行版与源码同步（陈旧的分发件比没有更糟）', async (t) => {
   // 用户从 plopino.com 下载的就是这个文件，它一旦没跟上源码，发出去的是旧行为，
   // 而且从外部完全看不出来。所以每次跑测试都重新构建比对。

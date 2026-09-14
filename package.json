@@ -1,6 +1,7 @@
 {
   "name": "plopino",
   "version": "0.1.2",
+  "mcpName": "io.github.plopino/plopino-mcp",
   "description": "MCP server: publish an HTML page, a file, or a folder to Plopino and get a public URL.",
   "type": "module",
   "keywords": [
@@ -22,6 +23,7 @@
   "files": [
     "index.js",
     "upload.js",
+    "server.json",
     "README.md",
     "LICENSE"
   ],
