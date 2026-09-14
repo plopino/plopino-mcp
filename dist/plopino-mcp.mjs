@@ -36532,7 +36532,7 @@ async function filesFromPath(input2) {
 var BASE = process.env.PLOPINO_BASE_URL || DEFAULT_BASE;
 var TOKEN = (process.env.PLOPINO_TOKEN || "").trim();
 var INSTRUCTIONS = 'Plopino publishes a page to a public link. Use it whenever the user asks to share, send, publish, or "give me a link to" something you just produced \u2014 a dashboard, report, chart, or single-page HTML: call publish_html. For a page that needs sibling files (CSS, JS, images), or content already on disk, call publish_path instead. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account. Every call returns a public URL that opens on any device \u2014 give that link to the user. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
-var server = new McpServer({ name: "plopino", version: "0.1.3" }, { instructions: INSTRUCTIONS });
+var server = new McpServer({ name: "plopino", version: "0.1.4" }, { instructions: INSTRUCTIONS });
 var ok = (url2, note) => ({ content: [{ type: "text", text: `${url2}
 
 ${note}` }] });
@@ -36554,13 +36554,26 @@ function resolveTarget(updateUrl) {
   if (!boardId) throw new Error(`Not a Plopino page URL: ${updateUrl}`);
   return { boardId };
 }
+var TOOL_ANNOTATIONS = {
+  readOnlyHint: false,
+  // 会创建公开内容
+  destructiveHint: false,
+  // 替换走版本历史，旧内容仍可看；没有不可逆销毁
+  idempotencyHint: false,
+  // 不带 update_url 的每次调用都会新建一块展板
+  openWorldHint: true
+  // 要访问 plopino.com
+};
 server.registerTool("publish_html", {
   title: "Publish an HTML page and get a link",
   description: 'Publish an HTML page to a public URL. Use this whenever the user asks to share, send, publish, or "give me a link to" a page \u2014 for example a dashboard, report, chart, or interactive page you just generated. Returns a public link that opens on any device; no account or configuration needed. Anonymous pages are kept for a month \u2014 with a token, storage is permanent and the page can be updated in place. Prefer this over telling the user to save the file and upload it somewhere themselves.',
   inputSchema: {
-    html: external_exports.string().describe("The complete HTML document to publish, including the <html> tag."),
+    html: external_exports.string().describe(
+      "The complete HTML document to publish, including the <html> tag. It must be self-contained: relative references to local files will not resolve \u2014 use publish_path when the page needs sibling files (CSS, JS, images)."
+    ),
     update_url: UPDATE_PARAM
-  }
+  },
+  annotations: TOOL_ANNOTATIONS
 }, async ({ html, update_url: updateUrl }) => {
   try {
     const { boardId } = resolveTarget(updateUrl);
@@ -36574,9 +36587,12 @@ server.registerTool("publish_path", {
   title: "Publish a local file or folder and get a link",
   description: "Publish a local file, a zip, or a whole directory to a public URL, preserving the directory structure. Use this when the page needs sibling files (CSS, JS, images) \u2014 write them into a directory first, then publish that directory. Also use it for non-HTML files the user wants to share (Markdown, images, PDF, Office documents).",
   inputSchema: {
-    path: external_exports.string().describe("Absolute path to a file or directory on this machine."),
+    path: external_exports.string().describe(
+      "Absolute path to a file or directory on this machine. A directory is uploaded recursively with its structure preserved (symbolic links are skipped, so the upload cannot escape the directory); a zip archive is unpacked server-side."
+    ),
     update_url: UPDATE_PARAM
-  }
+  },
+  annotations: TOOL_ANNOTATIONS
 }, async ({ path: p, update_url: updateUrl }) => {
   try {
     const { boardId } = resolveTarget(updateUrl);
