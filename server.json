@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.plopino/plopino-mcp",
   "title": "Plopino",
-  "description": "Publish an HTML page, file, or folder to a public link; update a page without changing its URL.",
-  "version": "0.1.5",
+  "description": "Publish pages, documents, or folders to a link; documents render as pages; updates keep the URL.",
+  "version": "0.1.6",
   "websiteUrl": "https://plopino.com",
   "repository": {
     "url": "https://github.com/plopino/plopino-mcp",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "plopino",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "transport": {
         "type": "stdio"
       }

@@ -24,16 +24,19 @@ const TOKEN = (process.env.PLOPINO_TOKEN || '').trim();
 // 是因为它要在模型看到工具列表之前就建立"什么时候该想到 Plopino"。
 // 工具描述仍逐个写清各自的适用场景（见下面的 description）。
 const INSTRUCTIONS =
-  'Plopino publishes a page to a public link. Use it whenever the user asks to share, send, '
-  + 'publish, or "give me a link to" something you just produced — a dashboard, report, chart, '
-  + 'or single-page HTML: call publish_html. For a page that needs sibling files (CSS, JS, '
-  + 'images), or content already on disk, call publish_path instead. Do not tell the user to '
-  + 'save the file and upload it somewhere themselves. Publishing works with no account. Every '
-  + 'call returns a public URL that opens on any device — give that link to the user. Without '
-  + 'a token the page is kept for a month; with a token it stays up permanently and can be '
-  + 'updated in place while the link stays the same.';
+  'Plopino turns content into a public link — use it whenever the user asks to share, send, '
+  + 'publish, or "give me a link to" something. An HTML page (dashboard, report, chart, or '
+  + 'single page you just generated): call publish_html. Anything already on disk — a '
+  + 'directory with sibling files, or any document: call publish_path. Documents are '
+  + 'first-class: Word (doc/docx), Excel (xls/xlsx), PowerPoint and Markdown render as '
+  + 'readable pages, code and data files get syntax-highlighted previews, images and video '
+  + 'display inline — the recipient opens a link and never downloads a file. Do not tell '
+  + 'the user to save the file and upload it somewhere themselves. Publishing works with no '
+  + 'account; every call returns a public URL that opens on any device. Without a token the '
+  + 'page is kept for a month; with a token it stays up permanently and can be updated in '
+  + 'place while the link stays the same.';
 
-const server = new McpServer({ name: 'plopino', version: '0.1.5' }, { instructions: INSTRUCTIONS });
+const server = new McpServer({ name: 'plopino', version: '0.1.6' }, { instructions: INSTRUCTIONS });
 
 // 工具描述是给**模型**看的，不是给人看的——要写清楚「什么时候该用」，
 // 否则模型不知道有这个能力，集成了也不会被调用。
@@ -106,8 +109,11 @@ server.registerTool('publish_path', {
   description:
     'Publish a local file, a zip, or a whole directory to a public URL, preserving the '
     + 'directory structure. Use this when the page needs sibling files (CSS, JS, images) — '
-    + 'write them into a directory first, then publish that directory. Also use it for '
-    + 'non-HTML files the user wants to share (Markdown, images, PDF, Office documents).',
+    + 'write them into a directory first, then publish that directory. It is also the way '
+    + 'to share any document: Word (doc/docx), Excel (xls/xlsx), PowerPoint and Markdown '
+    + 'render as readable pages, code and data files get syntax-highlighted previews, and '
+    + 'images and video display inline — the recipient opens a link instead of downloading '
+    + 'a file.',
   inputSchema: {
     path: z.string().describe(
       'Absolute path to a file or directory on this machine. A directory is uploaded '

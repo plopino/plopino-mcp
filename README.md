@@ -4,17 +4,21 @@ MCP server for [Plopino](https://plopino.com) — lets an AI agent publish what 
 and hand back a public link, without the user touching a browser.
 
 ```
-agent writes index.html
+agent writes index.html — or has a report / spreadsheet / markdown on disk
    ↓  publish_html / publish_path
 https://plopino.com/b/xxxxxxxx/
 ```
+
+Documents are first-class: Word (doc/docx), Excel (xls/xlsx), PowerPoint and Markdown
+render as readable pages, code and data files get syntax-highlighted previews, and images
+and video display inline. The recipient opens a link; they never download a file.
 
 ## Tools
 
 | Tool | Use it when |
 |---|---|
 | `publish_html` | You have the page as a string. The most direct path for generated HTML. |
-| `publish_path` | The page needs sibling files (CSS, JS, images), or you are sharing something that is already on disk. Point it at a directory and the structure is preserved — no need to zip first. |
+| `publish_path` | The page needs sibling files (CSS, JS, images), or you are sharing something that is already on disk — including any document. Point it at a directory and the structure is preserved — no need to zip first. |
 
 Both take an optional `update_url`: pass a link returned by an earlier publish and that page's
 content is replaced **while the link stays the same**. This needs a token (see below).
