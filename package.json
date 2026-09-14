@@ -1,0 +1,45 @@
+{
+  "name": "plopino",
+  "version": "0.1.2",
+  "description": "MCP server: publish an HTML page, a file, or a folder to Plopino and get a public URL.",
+  "type": "module",
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "claude",
+    "html",
+    "publish",
+    "share",
+    "static-hosting",
+    "url"
+  ],
+  "bin": {
+    "plopino": "index.js"
+  },
+  "files": [
+    "index.js",
+    "upload.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plopino/plopino-mcp.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.6.5"
+  },
+  "scripts": {
+    "test": "node --test",
+    "build": "esbuild index.js --bundle --platform=node --format=esm --target=node18 --outfile=dist/plopino-mcp.mjs --log-level=warning"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
