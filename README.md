@@ -44,6 +44,10 @@ a token — the anonymous flow is the product.
 
 ## Install
 
+Also listed in the [official MCP registry](https://registry.modelcontextprotocol.io) as
+`io.github.plopino/plopino-mcp`, and on [Smithery](https://smithery.ai/servers/plopino/plopino)
+as an installable bundle.
+
 **Anything that speaks stdio MCP works** — the server is a plain stdio process, so the only
 difference between clients is how you register it. All of the below are the clients' own
 documented forms (verified 2026-09). Wherever you see `plp_xxx`, paste a token from
