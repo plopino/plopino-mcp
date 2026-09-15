@@ -1,0 +1,37 @@
+{
+  "manifest_version": "0.3",
+  "name": "plopino",
+  "version": "0.1.8",
+  "description": "Publish an HTML page, a document, a file, or a folder to Plopino and get a public link.",
+  "author": {
+    "name": "Plopino",
+    "url": "https://plopino.com"
+  },
+  "homepage": "https://plopino.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plopino/plopino-mcp"
+  },
+  "license": "MIT",
+  "keywords": ["mcp", "publish", "share", "html", "documents", "link"],
+  "server": {
+    "type": "node",
+    "entry_point": "index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/index.js"],
+      "env": {
+        "PLOPINO_TOKEN": "${user_config.token}"
+      }
+    }
+  },
+  "user_config": {
+    "token": {
+      "type": "string",
+      "title": "Plopino token (optional)",
+      "description": "Leave empty to publish anonymously — that is the default flow and needs no account. A token from plopino.com/b publishes to your account instead: private boards, in-place updates that keep the same link, and no per-IP rate limit.",
+      "sensitive": true,
+      "required": false
+    }
+  }
+}

@@ -187,6 +187,11 @@ test('版本号只有一处真相：package.json 与 index.js 必须一致', asy
   const m = src.match(/new McpServer\(\{ name: 'plopino', version: '([^']+)' \}/);
   assert.ok(m, 'index.js 里的 McpServer 版本字面量没找到（改过写法就同步改这里）');
   assert.equal(m[1], pkg.version, 'index.js 与 package.json 的版本号不一致');
+
+  // 分发包的 manifest 也带版本号：.mcpb bundle（Smithery / Claude Desktop 认这个格式）。
+  // 它对不上时 bundle 装出来的版本与 npm 上那份不同，排查时又会误导人。
+  const mf = JSON.parse(await readFile(path.join(DIR, '..', 'mcpb', 'manifest.json'), 'utf8'));
+  assert.equal(mf.version, pkg.version, 'mcpb/manifest.json 与 package.json 的版本号不一致');
 });
 
 test('server.json 与 package.json 必须互相对得上（官方注册表按这个验归属）', async () => {
