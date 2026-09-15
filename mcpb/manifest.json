@@ -21,6 +21,61 @@
     "documents",
     "link"
   ],
+  "tools": [
+    {
+      "name": "publish_html",
+      "description": "Publish an HTML page to a public URL and get a shareable link.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "html": {
+            "type": "string",
+            "description": "The complete HTML document to publish, including the <html> tag. Must be self-contained: relative references to local files do not resolve."
+          },
+          "update_url": {
+            "type": "string",
+            "description": "A URL returned by an earlier publish. When given, that page's content is replaced and the link stays the same. Requires a Plopino token."
+          }
+        },
+        "required": ["html"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string", "description": "Public link to the published page." },
+          "note": { "type": "string", "description": "Human-readable status: created vs updated, and how long the page is kept." }
+        },
+        "required": ["url", "note"]
+      }
+    },
+    {
+      "name": "publish_path",
+      "description": "Publish a local file, zip, or directory to a public URL and get a shareable link; documents render as readable pages.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Absolute path to a file or directory on this machine. Directories are uploaded recursively (symbolic links skipped); zips are unpacked server-side."
+          },
+          "update_url": {
+            "type": "string",
+            "description": "A URL returned by an earlier publish. When given, that page's content is replaced and the link stays the same. Requires a Plopino token."
+          }
+        },
+        "required": ["path"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string", "description": "Public link to the published page." },
+          "note": { "type": "string", "description": "Human-readable status: created vs updated, and how long the page is kept." }
+        },
+        "required": ["url", "note"]
+      }
+    }
+  ],
+  "tools_generated": false,
   "server": {
     "type": "node",
     "entry_point": "index.js",
