@@ -21,17 +21,6 @@
     "documents",
     "link"
   ],
-  "tools": [
-    {
-      "name": "publish_html",
-      "description": "Publish an HTML page to a public URL and get a shareable link."
-    },
-    {
-      "name": "publish_path",
-      "description": "Publish a local file, zip, or directory to a public URL and get a shareable link; documents render as readable pages."
-    }
-  ],
-  "tools_generated": false,
   "server": {
     "type": "node",
     "entry_point": "index.js",
