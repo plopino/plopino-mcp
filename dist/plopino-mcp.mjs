@@ -36541,8 +36541,8 @@ async function filesFromPath(input2) {
 // index.js
 var BASE = process.env.PLOPINO_BASE_URL || DEFAULT_BASE;
 var TOKEN = (process.env.PLOPINO_TOKEN || "").trim();
-var INSTRUCTIONS = 'Plopino turns content into a public link \u2014 use it whenever the user asks to share, send, publish, or "give me a link to" something. An HTML page (dashboard, report, chart, or single page you just generated): call publish_html. Anything already on disk \u2014 a directory with sibling files, or any document: call publish_path. Documents are first-class: Word (doc/docx), Excel (xls/xlsx), PowerPoint and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline \u2014 the recipient opens a link and never downloads a file. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account; every call returns a public URL that opens on any device. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
-var server = new McpServer({ name: "plopino", version: "0.1.7" }, { instructions: INSTRUCTIONS });
+var INSTRUCTIONS = 'Plopino turns content into a public link \u2014 use it whenever the user asks to share, send, publish, or "give me a link to" something. An HTML page (dashboard, report, chart, or single page you just generated): call publish_html. Anything already on disk \u2014 a directory with sibling files, or any document: call publish_path. Documents are first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline \u2014 the recipient opens a link and never downloads a file. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account; every call returns a public URL that opens on any device. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
+var server = new McpServer({ name: "plopino", version: "0.1.8" }, { instructions: INSTRUCTIONS });
 var ok = (url2, note) => ({ content: [{ type: "text", text: `${url2}
 
 ${note}` }] });
@@ -36595,7 +36595,7 @@ server.registerTool("publish_html", {
 });
 server.registerTool("publish_path", {
   title: "Publish a local file or folder and get a link",
-  description: "Publish a local file, a zip, or a whole directory to a public URL, preserving the directory structure. Use this when the page needs sibling files (CSS, JS, images) \u2014 write them into a directory first, then publish that directory. It is also the way to share any document: Word (doc/docx), Excel (xls/xlsx), PowerPoint and Markdown render as readable pages, code and data files get syntax-highlighted previews, and images and video display inline \u2014 the recipient opens a link instead of downloading a file.",
+  description: "Publish a local file, a zip, or a whole directory to a public URL, preserving the directory structure. Use this when the page needs sibling files (CSS, JS, images) \u2014 write them into a directory first, then publish that directory. It is also the way to share any document: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, and images and video display inline \u2014 the recipient opens a link instead of downloading a file. (PowerPoint files publish and download fine but have no rendered preview.)",
   inputSchema: {
     path: external_exports.string().describe(
       "Absolute path to a file or directory on this machine. A directory is uploaded recursively with its structure preserved (symbolic links are skipped, so the upload cannot escape the directory); a zip archive is unpacked server-side."

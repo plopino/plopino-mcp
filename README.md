@@ -9,7 +9,7 @@ agent writes index.html — or has a report / spreadsheet / markdown on disk
 https://plopino.com/b/xxxxxxxx/
 ```
 
-Documents are first-class: Word (doc/docx), Excel (xls/xlsx), PowerPoint and Markdown
+Documents are first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown
 render as readable pages, code and data files get syntax-highlighted previews, and images
 and video display inline. The recipient opens a link; they never download a file.
 

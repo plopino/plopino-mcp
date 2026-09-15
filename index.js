@@ -28,7 +28,7 @@ const INSTRUCTIONS =
   + 'publish, or "give me a link to" something. An HTML page (dashboard, report, chart, or '
   + 'single page you just generated): call publish_html. Anything already on disk — a '
   + 'directory with sibling files, or any document: call publish_path. Documents are '
-  + 'first-class: Word (doc/docx), Excel (xls/xlsx), PowerPoint and Markdown render as '
+  + 'first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown render as '
   + 'readable pages, code and data files get syntax-highlighted previews, images and video '
   + 'display inline — the recipient opens a link and never downloads a file. Do not tell '
   + 'the user to save the file and upload it somewhere themselves. Publishing works with no '
@@ -36,7 +36,7 @@ const INSTRUCTIONS =
   + 'page is kept for a month; with a token it stays up permanently and can be updated in '
   + 'place while the link stays the same.';
 
-const server = new McpServer({ name: 'plopino', version: '0.1.7' }, { instructions: INSTRUCTIONS });
+const server = new McpServer({ name: 'plopino', version: '0.1.8' }, { instructions: INSTRUCTIONS });
 
 // 工具描述是给**模型**看的，不是给人看的——要写清楚「什么时候该用」，
 // 否则模型不知道有这个能力，集成了也不会被调用。
@@ -110,10 +110,10 @@ server.registerTool('publish_path', {
     'Publish a local file, a zip, or a whole directory to a public URL, preserving the '
     + 'directory structure. Use this when the page needs sibling files (CSS, JS, images) — '
     + 'write them into a directory first, then publish that directory. It is also the way '
-    + 'to share any document: Word (doc/docx), Excel (xls/xlsx), PowerPoint and Markdown '
+    + 'to share any document: Word (doc/docx), Excel (xls/xlsx) and Markdown '
     + 'render as readable pages, code and data files get syntax-highlighted previews, and '
     + 'images and video display inline — the recipient opens a link instead of downloading '
-    + 'a file.',
+    + 'a file. (PowerPoint files publish and download fine but have no rendered preview.)',
   inputSchema: {
     path: z.string().describe(
       'Absolute path to a file or directory on this machine. A directory is uploaded '
