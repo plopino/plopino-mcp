@@ -36542,7 +36542,7 @@ async function filesFromPath(input2) {
 var BASE = process.env.PLOPINO_BASE_URL || DEFAULT_BASE;
 var TOKEN = (process.env.PLOPINO_TOKEN || "").trim();
 var INSTRUCTIONS = 'Plopino turns content into a public link \u2014 use it whenever the user asks to share, send, publish, or "give me a link to" something. An HTML page (dashboard, report, chart, or single page you just generated): call publish_html. Anything already on disk \u2014 a directory with sibling files, or any document: call publish_path. Documents are first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline \u2014 the recipient opens a link and never downloads a file. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account; every call returns a public URL that opens on any device. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
-var server = new McpServer({ name: "plopino", version: "0.1.9" }, { instructions: INSTRUCTIONS });
+var server = new McpServer({ name: "plopino", version: "0.1.10" }, { instructions: INSTRUCTIONS });
 var ok = (url2, note) => ({
   content: [{ type: "text", text: `${url2}
 
@@ -36578,7 +36578,7 @@ var TOOL_ANNOTATIONS = {
   // 会创建公开内容
   destructiveHint: false,
   // 替换走版本历史，旧内容仍可看；没有不可逆销毁
-  idempotencyHint: false,
+  idempotentHint: false,
   // 不带 update_url 的每次调用都会新建一块展板
   openWorldHint: true
   // 要访问 plopino.com

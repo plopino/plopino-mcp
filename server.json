@@ -3,7 +3,7 @@
   "name": "io.github.plopino/plopino-mcp",
   "title": "Plopino",
   "description": "Publish pages, documents, or folders to a link; documents render as pages; updates keep the URL.",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "websiteUrl": "https://plopino.com",
   "repository": {
     "url": "https://github.com/plopino/plopino-mcp",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "plopino",
-      "version": "0.1.9",
+      "version": "0.1.10",
       "transport": {
         "type": "stdio"
       }

@@ -1,0 +1,77 @@
+{
+  "serverInfo": {
+    "name": "plopino",
+    "title": "Plopino",
+    "version": "0.1.10",
+    "description": "Publish an HTML page, a document, or a folder to Plopino and get a public link.",
+    "websiteUrl": "https://plopino.com"
+  },
+  "tools": [
+    {
+      "name": "publish_html",
+      "title": "Publish an HTML page and get a link",
+      "description": "Publish an HTML page to a public URL. Use this whenever the user asks to share, send, publish, or \"give me a link to\" a page — a dashboard, report, chart, or interactive page. Returns a public link that opens on any device; no account or configuration needed. Anonymous pages are kept for a month — with a token, storage is permanent and the page can be updated in place.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "html": {
+            "type": "string",
+            "description": "The complete HTML document to publish, including the <html> tag. Must be self-contained: relative references to local files will not resolve — use publish_path when the page needs sibling files."
+          },
+          "update_url": {
+            "type": "string",
+            "description": "A URL returned by an earlier publish. When given, that page content is replaced and the link stays the same. Requires a Plopino token."
+          }
+        },
+        "required": ["html"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string", "description": "Public link to the published page." },
+          "note": { "type": "string", "description": "Human-readable status: created vs updated, and how long the page is kept." }
+        },
+        "required": ["url", "note"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "publish_path",
+      "title": "Publish a local file or folder and get a link",
+      "description": "Publish a local file, a zip, or a whole directory to a public URL, preserving the directory structure. Use this when the page needs sibling files (CSS, JS, images) or to share any document: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Absolute path to a file or directory on this machine. Directories upload recursively (symbolic links skipped); zips are unpacked server-side."
+          },
+          "update_url": {
+            "type": "string",
+            "description": "A URL returned by an earlier publish. When given, that page content is replaced and the link stays the same. Requires a Plopino token."
+          }
+        },
+        "required": ["path"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string", "description": "Public link to the published page." },
+          "note": { "type": "string", "description": "Human-readable status: created vs updated, and how long the page is kept." }
+        },
+        "required": ["url", "note"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    }
+  ]
+}

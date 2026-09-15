@@ -36,7 +36,7 @@ const INSTRUCTIONS =
   + 'page is kept for a month; with a token it stays up permanently and can be updated in '
   + 'place while the link stays the same.';
 
-const server = new McpServer({ name: 'plopino', version: '0.1.9' }, { instructions: INSTRUCTIONS });
+const server = new McpServer({ name: 'plopino', version: '0.1.10' }, { instructions: INSTRUCTIONS });
 
 // 工具描述是给**模型**看的，不是给人看的——要写清楚「什么时候该用」，
 // 否则模型不知道有这个能力，集成了也不会被调用。
@@ -84,7 +84,7 @@ function resolveTarget(updateUrl) {
 const TOOL_ANNOTATIONS = {
   readOnlyHint: false,    // 会创建公开内容
   destructiveHint: false, // 替换走版本历史，旧内容仍可看；没有不可逆销毁
-  idempotencyHint: false, // 不带 update_url 的每次调用都会新建一块展板
+  idempotentHint: false,  // 不带 update_url 的每次调用都会新建一块展板
   openWorldHint: true,    // 要访问 plopino.com
 };
 

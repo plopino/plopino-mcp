@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.3",
   "name": "plopino",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Publish an HTML page, a document, a file, or a folder to Plopino and get a public link.",
   "author": {
     "name": "Plopino",

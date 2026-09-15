@@ -192,6 +192,12 @@ test('版本号只有一处真相：package.json 与 index.js 必须一致', asy
   // 它对不上时 bundle 装出来的版本与 npm 上那份不同，排查时又会误导人。
   const mf = JSON.parse(await readFile(path.join(DIR, '..', 'mcpb', 'manifest.json'), 'utf8'));
   assert.equal(mf.version, pkg.version, 'mcpb/manifest.json 与 package.json 的版本号不一致');
+
+  // Smithery 发布用的 server card 也带版本（发布脚本会把 package.json 的版本覆盖上去，
+  // 但仓库里这份仍要一致——否则它会成为下一个「以为发的是新版」的现场）
+  const card = JSON.parse(await readFile(path.join(DIR, '..', 'mcpb', 'server-card.json'), 'utf8'));
+  assert.equal(card.serverInfo.version, pkg.version, 'mcpb/server-card.json 与 package.json 的版本号不一致');
+  assert.equal(card.tools.length, 2, 'server card 要声明两个工具——Smithery 的质量分只读它，不读运行时内省');
 });
 
 test('server.json 与 package.json 必须互相对得上（官方注册表按这个验归属）', async () => {
