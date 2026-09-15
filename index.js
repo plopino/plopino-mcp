@@ -36,15 +36,28 @@ const INSTRUCTIONS =
   + 'page is kept for a month; with a token it stays up permanently and can be updated in '
   + 'place while the link stays the same.';
 
-const server = new McpServer({ name: 'plopino', version: '0.1.8' }, { instructions: INSTRUCTIONS });
+const server = new McpServer({ name: 'plopino', version: '0.1.9' }, { instructions: INSTRUCTIONS });
 
 // 工具描述是给**模型**看的，不是给人看的——要写清楚「什么时候该用」，
 // 否则模型不知道有这个能力，集成了也不会被调用。
-const ok = (url, note) => ({ content: [{ type: 'text', text: `${url}\n\n${note}` }] });
+// 返回值同时给两条：content 是给人读的文本，structuredContent 是按 outputSchema
+// 声明的结构化结果——agent 不必正则解析那段文本就能拿到链接。
+const ok = (url, note) => ({
+  content: [{ type: 'text', text: `${url}\n\n${note}` }],
+  structuredContent: { url, note },
+});
 const fail = (err) => ({
   content: [{ type: 'text', text: `Could not publish: ${err?.message || err}` }],
   isError: true,
 });
+
+// 输出模式：两个工具返回同一种形状（链接 + 状态说明）。声明它不是形式主义——
+// 客户端能据此做结构化消费，目录站（如 Smithery）也把「Output schemas」单列为一项质量分。
+const OUTPUT_SCHEMA = {
+  url: z.string().describe('Public link to the published page — give this to the user.'),
+  note: z.string().describe(
+    'Human-readable status: created vs updated, and how long the page is kept.'),
+};
 
 const UPDATE_PARAM = z.string().optional().describe(
   'A URL returned by an earlier publish. When given, the content of that page is replaced '
@@ -92,6 +105,7 @@ server.registerTool('publish_html', {
     update_url: UPDATE_PARAM,
   },
   annotations: TOOL_ANNOTATIONS,
+  outputSchema: OUTPUT_SCHEMA,
 }, async ({ html, update_url: updateUrl }) => {
   try {
     const { boardId } = resolveTarget(updateUrl);
@@ -122,6 +136,7 @@ server.registerTool('publish_path', {
     update_url: UPDATE_PARAM,
   },
   annotations: TOOL_ANNOTATIONS,
+  outputSchema: OUTPUT_SCHEMA,
 }, async ({ path: p, update_url: updateUrl }) => {
   try {
     const { boardId } = resolveTarget(updateUrl);

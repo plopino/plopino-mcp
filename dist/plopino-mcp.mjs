@@ -36542,14 +36542,23 @@ async function filesFromPath(input2) {
 var BASE = process.env.PLOPINO_BASE_URL || DEFAULT_BASE;
 var TOKEN = (process.env.PLOPINO_TOKEN || "").trim();
 var INSTRUCTIONS = 'Plopino turns content into a public link \u2014 use it whenever the user asks to share, send, publish, or "give me a link to" something. An HTML page (dashboard, report, chart, or single page you just generated): call publish_html. Anything already on disk \u2014 a directory with sibling files, or any document: call publish_path. Documents are first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline \u2014 the recipient opens a link and never downloads a file. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account; every call returns a public URL that opens on any device. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
-var server = new McpServer({ name: "plopino", version: "0.1.8" }, { instructions: INSTRUCTIONS });
-var ok = (url2, note) => ({ content: [{ type: "text", text: `${url2}
+var server = new McpServer({ name: "plopino", version: "0.1.9" }, { instructions: INSTRUCTIONS });
+var ok = (url2, note) => ({
+  content: [{ type: "text", text: `${url2}
 
-${note}` }] });
+${note}` }],
+  structuredContent: { url: url2, note }
+});
 var fail = (err) => ({
   content: [{ type: "text", text: `Could not publish: ${err?.message || err}` }],
   isError: true
 });
+var OUTPUT_SCHEMA = {
+  url: external_exports.string().describe("Public link to the published page \u2014 give this to the user."),
+  note: external_exports.string().describe(
+    "Human-readable status: created vs updated, and how long the page is kept."
+  )
+};
 var UPDATE_PARAM = external_exports.string().optional().describe(
   "A URL returned by an earlier publish. When given, the content of that page is replaced and the link stays the same. Requires the server to be configured with a Plopino token."
 );
@@ -36583,7 +36592,8 @@ server.registerTool("publish_html", {
     ),
     update_url: UPDATE_PARAM
   },
-  annotations: TOOL_ANNOTATIONS
+  annotations: TOOL_ANNOTATIONS,
+  outputSchema: OUTPUT_SCHEMA
 }, async ({ html, update_url: updateUrl }) => {
   try {
     const { boardId } = resolveTarget(updateUrl);
@@ -36602,7 +36612,8 @@ server.registerTool("publish_path", {
     ),
     update_url: UPDATE_PARAM
   },
-  annotations: TOOL_ANNOTATIONS
+  annotations: TOOL_ANNOTATIONS,
+  outputSchema: OUTPUT_SCHEMA
 }, async ({ path: p, update_url: updateUrl }) => {
   try {
     const { boardId } = resolveTarget(updateUrl);
