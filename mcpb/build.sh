@@ -2,9 +2,10 @@
 # 打出 .mcpb bundle（MCP Bundle = stdio 服务器的分发格式）。
 #
 # 为什么需要它：Smithery 只收「远程 URL」或「.mcpb」，我们没有远程端点，所以走 bundle；
-# Claude Desktop 的「安装扩展」吃的也是这个格式。发布：
-#   npx @anthropic-ai/smithery-cli auth login
-#   smithery mcp publish ../plopino.mcpb -n plopino/plopino
+# Claude Desktop 的「安装扩展」吃的也是这个格式。发布（CLI 包名就是 smithery，
+# 不是 @smithery/cli——那是 4.x 的旧包）：
+#   npx -y smithery auth login                               # OAuth，浏览器授权
+#   npx -y smithery mcp publish ../plopino.mcpb -n plopino/plopino
 #
 # 打包是把目录原样装进 zip，所以这里先把**运行需要的东西**挑进临时目录（不带 test/、
 # 不带 devDependencies），而不是直接 pack mcp/ —— 后者会把测试与 esbuild 一起发出去。
