@@ -19,6 +19,7 @@ and video display inline. The recipient opens a link; they never download a file
 |---|---|
 | `publish_page` | You have the content as a string — generated HTML, or a Markdown / CSV / code document. The `filename` decides how it renders: leave it at `index.html` for a page, pass `report.md` and it renders as a document. |
 | `publish_path` | The page needs sibling files (CSS, JS, images), or you are sharing something that is already on disk — including any document, and including binary formats (docx, xlsx, pdf) that cannot be sent as a string. Point it at a directory and the structure is preserved — no need to zip first. |
+| `publish_files` | Remote endpoint only. Same job as `publish_path` for clients that cannot hand over a local path: you send the file contents inline (a relative path plus its content, per entry). |
 
 Both take an optional `update_url`: pass a link returned by an earlier publish and that page's
 content is replaced **while the link stays the same**. This needs a token (see below).
@@ -52,6 +53,8 @@ as an installable bundle.
 difference between clients is how you register it. All of the below are the clients' own
 documented forms (verified 2026-09). Wherever you see `plp_xxx`, paste a token from
 **plopino.com/b** — the panel there fills it in for you and lets you pick your client.
+If your client would rather not run a local process at all, skip to
+[Remote endpoint](#remote-endpoint--nothing-to-install) — same tools, one URL.
 
 **Claude Code**
 
@@ -117,6 +120,30 @@ claude mcp add plopino -e PLOPINO_TOKEN=plp_xxx -- node "$HOME/.plopino-mcp.mjs"
 > directory, so a relative path would break.
 
 Then just ask: *"publish this to Plopino"*, or *"give me a link for that page"*.
+
+## Remote endpoint — nothing to install
+
+Everything above runs on your machine. There is also a **hosted Streamable HTTP endpoint**
+serving the same tools, for clients that support remote MCP servers and would rather not run
+a local process at all:
+
+```
+https://plopino.com/mcp
+```
+
+```bash
+claude mcp add --transport http plopino https://plopino.com/mcp
+```
+
+Any client that accepts a remote server URL takes that same address. Authentication works the
+same way: send a token as `Authorization: Bearer plp_xxx` if you have one, and publish
+anonymously if you don't.
+
+Two differences from the stdio build, both deliberate:
+
+- **`publish_path` is not available remotely.** It takes a path on the machine the server
+  runs on — which, remotely, is not your machine. Use `publish_files` and send the contents.
+- The endpoint is stateless: each request is handled on its own, no session to keep alive.
 
 ## Self-hosted / local
 
