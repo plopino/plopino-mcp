@@ -120,10 +120,11 @@ Then just ask: *"publish this to Plopino"*, or *"give me a link for that page"*.
 
 ## Self-hosted / local
 
-Set `PLOPINO_BASE_URL` to point at another instance:
+The instance the server publishes to defaults to `https://plopino.com`. Set `PLOPINO_BASE_URL`
+to point at another one — a staging host, or your own deployment:
 
 ```bash
-PLOPINO_BASE_URL=http://127.0.0.1:8787 npx -y plopino
+PLOPINO_BASE_URL=https://plopino.com npx -y plopino
 ```
 
 ## Requirements
@@ -138,11 +139,11 @@ npm install
 npm test        # 路径展开的边界 + 协议握手/工具列表（不需要网络）
 ```
 
-To exercise the full publish path, run a Plopino instance locally and drive the server
-over stdio:
+To exercise the full publish path, run a Plopino instance and drive the server over stdio
+against it:
 
 ```bash
-PLOPINO_BASE_URL=http://127.0.0.1:8787 node index.js
+PLOPINO_BASE_URL=https://plopino.com node index.js
 ```
 
 > **stdout is the MCP protocol channel.** Anything written there that is not a JSON-RPC
