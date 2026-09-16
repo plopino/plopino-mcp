@@ -2,7 +2,7 @@
   "serverInfo": {
     "name": "plopino",
     "title": "Plopino",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "Publish a page, a document, or a folder to Plopino and get a public link.",
     "websiteUrl": "https://plopino.com"
   },

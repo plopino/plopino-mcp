@@ -36552,7 +36552,7 @@ async function filesFromPath(input2) {
 }
 
 // tool-defs.js
-var SERVER_VERSION = "0.2.0";
+var SERVER_VERSION = "0.2.1";
 var INSTRUCTIONS = 'Plopino turns content into a public link \u2014 use it whenever the user asks to share, send, publish, or "give me a link to" something. When you have the content itself in hand: call publish_page \u2014 an HTML page (dashboard, report, chart, or single page you just generated), or a Markdown / CSV / code / data document, passing the filename so it renders as itself. Anything already on disk \u2014 a directory with sibling files, or any file: call publish_path. Documents are first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline \u2014 the recipient opens a link and never downloads a file. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account; every call returns a public URL that opens on any device. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
 var TOOL_ANNOTATIONS = {
   readOnlyHint: false,
