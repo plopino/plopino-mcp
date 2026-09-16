@@ -59,9 +59,28 @@ export function boardIdFromUrl(url) {
   return m ? m[1] : null;
 }
 
-// 一个 HTML 字符串 → 单文件展板。文件名固定 index.html，展板根链接才能直接渲染它。
-export function filesFromHtml(html) {
-  return [{ name: 'index.html', data: Buffer.from(html, 'utf8') }];
+// 文件名 → 上传接口认的相对路径。接口按 name 还原目录结构，绝对路径与 `..` 会被服务端
+// 拒；这里先拦一道，好让模型拿到一句能照着改的错，而不是一个 400。
+// 返回 null 表示"没给"（调用方套默认值），空串与纯空白同此处理。
+export function normalizeFilename(filename) {
+  const raw = String(filename ?? '').trim();
+  if (!raw) return null;
+  // Windows 风格的写进来的分隔符当路径分隔符看待，不当作文件名里合法的字符
+  const name = raw.replace(/\\/g, '/');
+  if (name.startsWith('/') || /^[A-Za-z]:/.test(name)) {
+    throw new Error(`filename must be a relative path, not an absolute one: ${filename}`);
+  }
+  const parts = name.split('/');
+  if (parts.some((p) => p === '' || p === '.' || p === '..')) {
+    throw new Error(`filename must be a plain relative path without "." or ".." segments: ${filename}`);
+  }
+  return name;
+}
+
+// 一段内容 + 文件名 → 单文件展板。默认 index.html：展板根链接才能直接渲染它。
+// 给别的名字（report.md、data.csv…）就走服务端按扩展名的渲染管线，根链接直出那份文档。
+export function filesFromContent(content, filename) {
+  return [{ name: normalizeFilename(filename) ?? 'index.html', data: Buffer.from(content, 'utf8') }];
 }
 
 // 本地路径 → 文件列表。目录递归展开，name 取相对路径。

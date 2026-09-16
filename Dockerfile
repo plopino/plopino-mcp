@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
-COPY index.js upload.js ./
+COPY index.js upload.js tool-defs.js ./
 
 # 以非 root 跑：这个进程会读本地文件路径（publish_path），少一层权限总是好的
 USER node

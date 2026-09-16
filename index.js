@@ -12,31 +12,17 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { publishFiles, filesFromHtml, filesFromPath, boardIdFromUrl, DEFAULT_BASE } from './upload.js';
+import { publishFiles, filesFromContent, filesFromPath, boardIdFromUrl, DEFAULT_BASE } from './upload.js';
+import {
+  SERVER_VERSION, INSTRUCTIONS, TOOL_ANNOTATIONS, TOOLS, TOKEN_HELP,
+} from './tool-defs.js';
 
 // 自建实例或本地验证时覆盖。默认走正式站。
 const BASE = process.env.PLOPINO_BASE_URL || DEFAULT_BASE;
 // 在 plopino.com/b 生成（服务端只存哈希，明文只显示一次）
 const TOKEN = (process.env.PLOPINO_TOKEN || '').trim();
 
-// 服务器级说明（initialize 时返回，客户端会读）。Codex 的文档明确要求把跨工具的用法与约束
-// 放在这里、且前 512 字符能独立成立；Claude Code 等客户端同样会读。放在工具描述之外写，
-// 是因为它要在模型看到工具列表之前就建立"什么时候该想到 Plopino"。
-// 工具描述仍逐个写清各自的适用场景（见下面的 description）。
-const INSTRUCTIONS =
-  'Plopino turns content into a public link — use it whenever the user asks to share, send, '
-  + 'publish, or "give me a link to" something. An HTML page (dashboard, report, chart, or '
-  + 'single page you just generated): call publish_html. Anything already on disk — a '
-  + 'directory with sibling files, or any document: call publish_path. Documents are '
-  + 'first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown render as '
-  + 'readable pages, code and data files get syntax-highlighted previews, images and video '
-  + 'display inline — the recipient opens a link and never downloads a file. Do not tell '
-  + 'the user to save the file and upload it somewhere themselves. Publishing works with no '
-  + 'account; every call returns a public URL that opens on any device. Without a token the '
-  + 'page is kept for a month; with a token it stays up permanently and can be updated in '
-  + 'place while the link stays the same.';
-
-const server = new McpServer({ name: 'plopino', version: '0.1.10' }, { instructions: INSTRUCTIONS });
+const server = new McpServer({ name: 'plopino', version: SERVER_VERSION }, { instructions: INSTRUCTIONS });
 
 // 工具描述是给**模型**看的，不是给人看的——要写清楚「什么时候该用」，
 // 否则模型不知道有这个能力，集成了也不会被调用。
@@ -59,80 +45,50 @@ const OUTPUT_SCHEMA = {
     'Human-readable status: created vs updated, and how long the page is kept.'),
 };
 
-const UPDATE_PARAM = z.string().optional().describe(
-  'A URL returned by an earlier publish. When given, the content of that page is replaced '
-  + 'and the link stays the same. Requires the server to be configured with a Plopino token.',
-);
+const UPDATE_PARAM = z.string().optional().describe(TOOLS.publish_page.params.update_url);
 
 // update_url 给了就走更新。没有 token 时更新必被服务端拒（401），
 // 与其让用户看到 authentication 报错，不如在这里说清楚缺什么。
 function resolveTarget(updateUrl) {
   if (!updateUrl) return { boardId: null };
   if (!TOKEN) {
-    throw new Error(
-      'Updating an existing page requires a Plopino token. '
-      + 'Create one at plopino.com/b and set PLOPINO_TOKEN in this server\'s environment.',
-    );
+    throw new Error('Updating an existing page requires a Plopino token. ' + TOKEN_HELP);
   }
   const boardId = boardIdFromUrl(updateUrl);
   if (!boardId) throw new Error(`Not a Plopino page URL: ${updateUrl}`);
   return { boardId };
 }
 
-// 工具注解（annotations）是给客户端看的机器可读语义：目录站按它打质量分，
-// 客户端按它决定要不要在调用前跟用户确认。两条工具共用同一组值，含义见行尾注释。
-const TOOL_ANNOTATIONS = {
-  readOnlyHint: false,    // 会创建公开内容
-  destructiveHint: false, // 替换走版本历史，旧内容仍可看；没有不可逆销毁
-  idempotentHint: false,  // 不带 update_url 的每次调用都会新建一块展板
-  openWorldHint: true,    // 要访问 plopino.com
-};
-
-server.registerTool('publish_html', {
-  title: 'Publish an HTML page and get a link',
-  description:
-    'Publish an HTML page to a public URL. Use this whenever the user asks to share, send, '
-    + 'publish, or "give me a link to" a page — for example a dashboard, report, chart, or '
-    + 'interactive page you just generated. Returns a public link that opens on any device; no '
-    + 'account or configuration needed. Anonymous pages are kept for a month — with a token, '
-    + 'storage is permanent and the page can be updated in place. Prefer this over telling the '
-    + 'user to save the file and upload it somewhere themselves.',
+server.registerTool('publish_page', {
+  title: TOOLS.publish_page.title,
+  description: TOOLS.publish_page.description,
   inputSchema: {
-    html: z.string().describe(
-      'The complete HTML document to publish, including the <html> tag. It must be '
-      + 'self-contained: relative references to local files will not resolve — use '
-      + 'publish_path when the page needs sibling files (CSS, JS, images).'),
+    content: z.string().describe(TOOLS.publish_page.params.content),
+    filename: z.string().optional().describe(TOOLS.publish_page.params.filename),
     update_url: UPDATE_PARAM,
   },
   annotations: TOOL_ANNOTATIONS,
   outputSchema: OUTPUT_SCHEMA,
-}, async ({ html, update_url: updateUrl }) => {
+}, async ({ content, filename, update_url: updateUrl }) => {
   try {
     const { boardId } = resolveTarget(updateUrl);
-    const data = await publishFiles(filesFromHtml(html), { baseUrl: BASE, token: TOKEN, boardId });
+    const files = filesFromContent(content, filename);
+    const data = await publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId });
+    // 非默认文件名时告诉模型它叫什么：链接里看不出文件名，而"这是 report.md 不是页面"会影响后续判断
+    const as = files[0].name === 'index.html' ? '' : ` Published as ${files[0].name}.`;
     return ok(data.url, boardId
       ? 'Updated — the link is unchanged.'
-      : 'Public — anyone with this link can open it. Anonymous pages are kept for a month; plopino.com/b makes them permanent.');
+      : `Public — anyone with this link can open it.${as} Anonymous pages are kept for a month; plopino.com/b makes them permanent.`);
   } catch (err) {
     return fail(err);
   }
 });
 
 server.registerTool('publish_path', {
-  title: 'Publish a local file or folder and get a link',
-  description:
-    'Publish a local file, a zip, or a whole directory to a public URL, preserving the '
-    + 'directory structure. Use this when the page needs sibling files (CSS, JS, images) — '
-    + 'write them into a directory first, then publish that directory. It is also the way '
-    + 'to share any document: Word (doc/docx), Excel (xls/xlsx) and Markdown '
-    + 'render as readable pages, code and data files get syntax-highlighted previews, and '
-    + 'images and video display inline — the recipient opens a link instead of downloading '
-    + 'a file. (PowerPoint files publish and download fine but have no rendered preview.)',
+  title: TOOLS.publish_path.title,
+  description: TOOLS.publish_path.description,
   inputSchema: {
-    path: z.string().describe(
-      'Absolute path to a file or directory on this machine. A directory is uploaded '
-      + 'recursively with its structure preserved (symbolic links are skipped, so the upload '
-      + 'cannot escape the directory); a zip archive is unpacked server-side.'),
+    path: z.string().describe(TOOLS.publish_path.params.path),
     update_url: UPDATE_PARAM,
   },
   annotations: TOOL_ANNOTATIONS,

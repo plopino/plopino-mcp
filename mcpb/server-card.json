@@ -2,28 +2,32 @@
   "serverInfo": {
     "name": "plopino",
     "title": "Plopino",
-    "version": "0.1.10",
-    "description": "Publish an HTML page, a document, or a folder to Plopino and get a public link.",
+    "version": "0.2.0",
+    "description": "Publish a page, a document, or a folder to Plopino and get a public link.",
     "websiteUrl": "https://plopino.com"
   },
   "tools": [
     {
-      "name": "publish_html",
-      "title": "Publish an HTML page and get a link",
-      "description": "Publish an HTML page to a public URL. Use this whenever the user asks to share, send, publish, or \"give me a link to\" a page — a dashboard, report, chart, or interactive page. Returns a public link that opens on any device; no account or configuration needed. Anonymous pages are kept for a month — with a token, storage is permanent and the page can be updated in place.",
+      "name": "publish_page",
+      "title": "Publish a page and get a link",
+      "description": "Publish content you have in hand to a public URL. Use this whenever the user asks to share, send, publish, or \"give me a link to\" something you just produced — an HTML page (dashboard, report, chart, interactive page), a Markdown document, CSV, JSON, or a code/data file. Everything it publishes becomes a page the recipient opens in a browser: the filename decides how it renders, so pass \"report.md\" for Markdown instead of renaming it to .html. Returns a public link that opens on any device; no account or configuration needed. Anonymous pages are kept for a month — with a token, storage is permanent and the page can be updated in place.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "html": {
+          "content": {
             "type": "string",
-            "description": "The complete HTML document to publish, including the <html> tag. Must be self-contained: relative references to local files will not resolve — use publish_path when the page needs sibling files."
+            "description": "The complete content of the file, as a string. With the default filename this is a self-contained HTML document including the <html> tag — relative references to local files will not resolve, so use publish_path when the page needs sibling files (CSS, JS, images)."
+          },
+          "filename": {
+            "type": "string",
+            "description": "What to name the file — this decides how the content is rendered, so get it right rather than renaming Markdown to .html. Defaults to \"index.html\". Use \"report.md\", \"data.csv\", \"query.sql\" and so on; subdirectories work too (\"reports/q3.md\"). Only text can be sent as a string — binary formats (docx, xlsx, pdf) must go through publish_path."
           },
           "update_url": {
             "type": "string",
             "description": "A URL returned by an earlier publish. When given, that page content is replaced and the link stays the same. Requires a Plopino token."
           }
         },
-        "required": ["html"]
+        "required": ["content"]
       },
       "outputSchema": {
         "type": "object",

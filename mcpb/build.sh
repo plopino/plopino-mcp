@@ -16,8 +16,14 @@ OUT="${1:-plopino.mcpb}"
 STAGE=$(mktemp -d)
 trap 'rm -rf "$STAGE"' EXIT
 
-cp index.js upload.js package.json package-lock.json "$STAGE/"
+cp index.js upload.js tool-defs.js package.json package-lock.json "$STAGE/"
 cp mcpb/manifest.json "$STAGE/manifest.json"
+# README 与图标必须进 bundle：
+#  · Claude 桌面扩展目录要求隐私政策以「README 的 Privacy Policy 小节」形式随包提交，
+#    缺了会被直接拒（官文：Missing or incomplete privacy policies result in immediate rejection）
+#  · manifest 的 icons[].src 指的是**包内**路径，图标不在包里等于没有图标
+cp README.md "$STAGE/README.md"
+cp mcpb/icon.png "$STAGE/icon.png"
 # 只装运行时依赖：bundle 要自包含，用户机器上不必再 npm install
 ( cd "$STAGE" && npm ci --omit=dev --no-audit --no-fund >/dev/null )
 

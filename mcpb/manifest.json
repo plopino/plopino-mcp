@@ -1,11 +1,11 @@
 {
   "manifest_version": "0.3",
   "name": "plopino",
-  "version": "0.1.10",
-  "description": "Publish an HTML page, a document, a file, or a folder to Plopino and get a public link.",
+  "version": "0.2.0",
+  "description": "Publish a page, a document, a file, or a folder to Plopino and get a public link.",
   "author": {
     "name": "Plopino",
-    "url": "https://plopino.com"
+    "url": "https://github.com/plopino"
   },
   "homepage": "https://plopino.com",
   "repository": {
@@ -13,6 +13,28 @@
     "url": "https://github.com/plopino/plopino-mcp"
   },
   "license": "MIT",
+  "privacy_policies": [
+    "https://plopino.com/privacy"
+  ],
+  "icons": [
+    {
+      "src": "icon.png",
+      "size": "512x512"
+    }
+  ],
+  "screenshots": [
+    "https://plopino.com/og.png"
+  ],
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "node": ">=18"
+    }
+  },
   "keywords": [
     "mcp",
     "publish",

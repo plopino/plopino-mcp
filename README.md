@@ -5,7 +5,7 @@ and hand back a public link, without the user touching a browser.
 
 ```
 agent writes index.html — or has a report / spreadsheet / markdown on disk
-   ↓  publish_html / publish_path
+   ↓  publish_page / publish_path
 https://plopino.com/b/xxxxxxxx/
 ```
 
@@ -17,8 +17,8 @@ and video display inline. The recipient opens a link; they never download a file
 
 | Tool | Use it when |
 |---|---|
-| `publish_html` | You have the page as a string. The most direct path for generated HTML. |
-| `publish_path` | The page needs sibling files (CSS, JS, images), or you are sharing something that is already on disk — including any document. Point it at a directory and the structure is preserved — no need to zip first. |
+| `publish_page` | You have the content as a string — generated HTML, or a Markdown / CSV / code document. The `filename` decides how it renders: leave it at `index.html` for a page, pass `report.md` and it renders as a document. |
+| `publish_path` | The page needs sibling files (CSS, JS, images), or you are sharing something that is already on disk — including any document, and including binary formats (docx, xlsx, pdf) that cannot be sent as a string. Point it at a directory and the structure is preserved — no need to zip first. |
 
 Both take an optional `update_url`: pass a link returned by an earlier publish and that page's
 content is replaced **while the link stays the same**. This needs a token (see below).
@@ -148,6 +148,25 @@ PLOPINO_BASE_URL=http://127.0.0.1:8787 node index.js
 > **stdout is the MCP protocol channel.** Anything written there that is not a JSON-RPC
 > message will break the client. All logging must go to stderr — hence `console.error`
 > everywhere and never `console.log`.
+
+## Privacy Policy
+
+Full policy: **https://plopino.com/privacy**
+
+- **What is collected.** Only what publishing requires: the file contents and file names you
+  pass to a tool, the destination URL, and — for anonymous publishes — the requesting IP
+  address (used for the daily rate limit). The MCP server itself collects nothing and sends
+  no telemetry; it runs locally and writes only to stderr.
+- **How it is used and stored.** Uploaded content is stored on Plopino's servers and served
+  from the returned public link. A `PLOPINO_TOKEN` is stored locally in your MCP client
+  configuration; the server keeps only its SHA-256 hash.
+- **Third parties.** No content or usage data is sold, shared or sent to third parties for
+  advertising. Plopino uses Cloudflare as its CDN/reverse proxy and self-hosted Umami for
+  aggregate, cookieless visit counts.
+- **Retention.** Anonymous uploads are deleted after **30 days**; a link can also be removed
+  earlier from the account page. Uploads made with a token are kept until you delete them
+  or the account is closed. Request deletion or report abuse at **abuse@plopino.com**.
+- **Contact.** abuse@plopino.com (abuse and privacy requests), or https://plopino.com/abuse.
 
 ## Notes
 

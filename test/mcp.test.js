@@ -12,17 +12,32 @@ import { mkdtemp, mkdir, writeFile, symlink, rm, readFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { filesFromHtml, filesFromPath, publishFiles, boardIdFromUrl } from '../upload.js';
+import { filesFromContent, filesFromPath, publishFiles, boardIdFromUrl } from '../upload.js';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ENTRY = path.join(DIR, '..', 'index.js');
 
 const tmp = () => mkdtemp(path.join(tmpdir(), 'plopino-mcp-'));
 
-test('filesFromHtml：固定命名为 index.html，展板根链接才能直接渲染它', () => {
-  const [f] = filesFromHtml('<h1>hi</h1>');
+test('filesFromContent：默认命名为 index.html，展板根链接才能直接渲染它', () => {
+  const [f] = filesFromContent('<h1>hi</h1>');
   assert.equal(f.name, 'index.html');
   assert.equal(f.data.toString('utf8'), '<h1>hi</h1>');
+});
+
+test('filesFromContent：给了 filename 就用它——服务端按扩展名决定渲染方式', () => {
+  assert.equal(filesFromContent('# 报告', 'report.md')[0].name, 'report.md');
+  assert.equal(filesFromContent('a,b', 'data.csv')[0].name, 'data.csv');
+  assert.equal(filesFromContent('x', 'reports/q3.md')[0].name, 'reports/q3.md', '子目录应当允许');
+  assert.equal(filesFromContent('x', '  ')[0].name, 'index.html', '空白等于没给，回到默认');
+  assert.equal(filesFromContent('x', 'a\\b.md')[0].name, 'a/b.md', 'Windows 风格分隔符归一成 /');
+});
+
+test('filesFromContent：绝对路径与 .. 段先在这里拦下，错误要能照着改', () => {
+  // 服务端也会拒，但在这里拦是为了让模型读到的是一句能改的错，而不是一个 400
+  for (const bad of ['/etc/passwd', '/tmp/a.md', '../escape.html', 'a/../../b.html', 'a//b.md', 'C:\\x.md', './a.md']) {
+    assert.throws(() => filesFromContent('x', bad), /filename must be a .*relative path/, `${bad} 应被拒`);
+  }
 });
 
 test('filesFromPath：单文件取 basename', async (t) => {
@@ -120,7 +135,7 @@ test('MCP 协议：握手成功、暴露两个工具、stdout 只有 JSON-RPC', 
   child.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }) + '\n');
   const list = await waitFor(2);
   const names = list.result.tools.map((x) => x.name).sort();
-  assert.deepEqual(names, ['publish_html', 'publish_path']);
+  assert.deepEqual(names, ['publish_page', 'publish_path']);
 
   // 每个工具都要有给模型看的描述——没有描述，模型不会知道什么时候该调它
   for (const tool of list.result.tools) {
@@ -149,7 +164,7 @@ test('publishFiles：有 token 才发 Authorization，更新走 board 子路由'
     calls.push({ url, headers: init.headers, method: init.method });
     return { ok: true, status: 200, text: async () => JSON.stringify({ url: 'https://plopino.com/b/x/' }) };
   };
-  const files = filesFromHtml('<h1>hi</h1>');
+  const files = filesFromContent('<h1>hi</h1>');
 
   // 匿名：不带 Authorization —— "不用注册"是卖点，不能被集成悄悄改成必须登录
   await publishFiles(files, { baseUrl: 'https://plopino.com', fetchImpl: fakeFetch });
@@ -169,7 +184,7 @@ test('publishFiles：有 token 才发 Authorization，更新走 board 子路由'
 
 test('publishFiles：更新接口把链接放在 board 里，取值要兼容两种形状', async () => {
   const mk = (body) => async () => ({ ok: true, status: 200, text: async () => JSON.stringify(body) });
-  const files = filesFromHtml('<h1>hi</h1>');
+  const files = filesFromContent('<h1>hi</h1>');
 
   const created = await publishFiles(files, { fetchImpl: mk({ url: 'https://p/b/new/' }) });
   assert.equal(created.url, 'https://p/b/new/');
@@ -179,14 +194,20 @@ test('publishFiles：更新接口把链接放在 board 里，取值要兼容两�
   assert.equal(updated.url, 'https://p/b/old/', '更新时链接从 board 里取，且应与原来相同');
 });
 
-test('版本号只有一处真相：package.json 与 index.js 必须一致', async () => {
-  // 客户端在握手里读到的是 index.js 里那个字面量，npm 上的是 package.json 那个。
-  // 两者漂移的话，用户报告"我装的是 0.1.2"而服务自称 0.1.1，排查时会误导人。
+test('版本号只有一处真相：package.json 与 tool-defs.js 必须一致', async () => {
+  // 客户端在握手里读到的是 SERVER_VERSION（唯一字面量在 tool-defs.js），npm 上的是
+  // package.json 那个。两者漂移的话，用户报告"我装的是 0.1.2"而服务自称 0.1.1，
+  // 排查时会误导人。index.js 不再自带字面量——它 import 同一个常量，所以只要断言
+  // 这个地方 + index.js 确实用的是它。
   const pkg = JSON.parse(await readFile(path.join(DIR, '..', 'package.json'), 'utf8'));
+  const defs = await readFile(path.join(DIR, '..', 'tool-defs.js'), 'utf8');
+  const m = defs.match(/export const SERVER_VERSION = '([^']+)'/);
+  assert.ok(m, 'tool-defs.js 里的 SERVER_VERSION 没找到（改过写法就同步改这里）');
+  assert.equal(m[1], pkg.version, 'tool-defs.js 与 package.json 的版本号不一致');
+
   const src = await readFile(ENTRY, 'utf8');
-  const m = src.match(/new McpServer\(\{ name: 'plopino', version: '([^']+)' \}/);
-  assert.ok(m, 'index.js 里的 McpServer 版本字面量没找到（改过写法就同步改这里）');
-  assert.equal(m[1], pkg.version, 'index.js 与 package.json 的版本号不一致');
+  assert.match(src, /new McpServer\(\{ name: 'plopino', version: SERVER_VERSION \}/,
+    'index.js 必须用 tool-defs.js 的 SERVER_VERSION，别再写回字面量');
 
   // 分发包的 manifest 也带版本号：.mcpb bundle（Smithery / Claude Desktop 认这个格式）。
   // 它对不上时 bundle 装出来的版本与 npm 上那份不同，排查时又会误导人。
@@ -220,7 +241,7 @@ test('server.json 与 package.json 必须互相对得上（官方注册表按这
 test('publishFiles：429 的错误要带出自助路径（agent 照着能走完，而不是「明天再试」）', async () => {
   // 托管部署（Glama 一键部署）共享出口 IP，匿名 429 是它们的常态而非边缘情况。
   // 服务端文案只说「次数用完」；模型读到出路（去哪拿 token、设哪个变量）才能自救。
-  const files = filesFromHtml('<h1>hi</h1>');
+  const files = filesFromContent('<h1>hi</h1>');
   const mk429 = async () => ({
     ok: false, status: 429,
     text: async () => JSON.stringify({ error: 'Daily upload quota used up (1 per day).' }),

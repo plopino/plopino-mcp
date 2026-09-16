@@ -36516,8 +36516,21 @@ function boardIdFromUrl(url2) {
   const m = /\/b\/([A-Za-z0-9_-]+)/.exec(String(url2 ?? ""));
   return m ? m[1] : null;
 }
-function filesFromHtml(html) {
-  return [{ name: "index.html", data: Buffer.from(html, "utf8") }];
+function normalizeFilename(filename) {
+  const raw = String(filename ?? "").trim();
+  if (!raw) return null;
+  const name = raw.replace(/\\/g, "/");
+  if (name.startsWith("/") || /^[A-Za-z]:/.test(name)) {
+    throw new Error(`filename must be a relative path, not an absolute one: ${filename}`);
+  }
+  const parts = name.split("/");
+  if (parts.some((p) => p === "" || p === "." || p === "..")) {
+    throw new Error(`filename must be a plain relative path without "." or ".." segments: ${filename}`);
+  }
+  return name;
+}
+function filesFromContent(content, filename) {
+  return [{ name: normalizeFilename(filename) ?? "index.html", data: Buffer.from(content, "utf8") }];
 }
 async function filesFromPath(input2) {
   const abs = path.resolve(input2);
@@ -36538,11 +36551,55 @@ async function filesFromPath(input2) {
   return out;
 }
 
+// tool-defs.js
+var SERVER_VERSION = "0.2.0";
+var INSTRUCTIONS = 'Plopino turns content into a public link \u2014 use it whenever the user asks to share, send, publish, or "give me a link to" something. When you have the content itself in hand: call publish_page \u2014 an HTML page (dashboard, report, chart, or single page you just generated), or a Markdown / CSV / code / data document, passing the filename so it renders as itself. Anything already on disk \u2014 a directory with sibling files, or any file: call publish_path. Documents are first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline \u2014 the recipient opens a link and never downloads a file. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account; every call returns a public URL that opens on any device. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
+var TOOL_ANNOTATIONS = {
+  readOnlyHint: false,
+  // 会创建公开内容
+  destructiveHint: false,
+  // 替换走版本历史，旧内容仍可看；没有不可逆销毁
+  idempotentHint: false,
+  // 不带 update_url 的每次调用都会新建一块展板
+  openWorldHint: true
+  // 要访问 plopino.com
+};
+var UPDATE_PARAM_DESC = "A URL returned by an earlier publish. When given, the content of that page is replaced and the link stays the same. Requires the server to be configured with a Plopino token.";
+var TOKEN_HELP = "Create a token at https://plopino.com/b and send it as: Authorization: Bearer <token> (stdio: set PLOPINO_TOKEN in this server's environment).";
+var TOOLS = {
+  publish_page: {
+    title: "Publish a page and get a link",
+    description: 'Publish content you have in hand to a public URL. Use this whenever the user asks to share, send, publish, or "give me a link to" something you just produced \u2014 an HTML page (dashboard, report, chart, interactive page), a Markdown document, CSV, JSON, or a code/data file. Everything it publishes becomes a page the recipient opens in a browser: the filename decides how it renders, so pass "report.md" for Markdown instead of renaming it to .html. Returns a public link that opens on any device; no account or configuration needed. Anonymous pages are kept for a month \u2014 with a token, storage is permanent and the page can be updated in place. Prefer this over telling the user to save the file and upload it somewhere themselves.',
+    params: {
+      content: "The complete content of the file, as a string. With the default filename this is a self-contained HTML document including the <html> tag \u2014 relative references to local files will not resolve, so use publish_path when the page needs sibling files (CSS, JS, images).",
+      filename: 'What to name the file \u2014 this decides how the content is rendered, so get it right rather than renaming Markdown to .html. Defaults to "index.html". Use "report.md", "data.csv", "query.sql" and so on; subdirectories work too ("reports/q3.md"). Only text can be sent as a string \u2014 binary formats (docx, xlsx, pdf) must go through publish_path.',
+      update_url: UPDATE_PARAM_DESC
+    }
+  },
+  publish_path: {
+    title: "Publish a local file or folder and get a link",
+    description: "Publish a local file, a zip, or a whole directory to a public URL, preserving the directory structure. Use this when the page needs sibling files (CSS, JS, images) \u2014 write them into a directory first, then publish that directory. It is also the way to share any document: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, and images and video display inline \u2014 the recipient opens a link instead of downloading a file. (PowerPoint files publish and download fine but have no rendered preview.)",
+    params: {
+      path: "Absolute path to a file or directory on this machine. A directory is uploaded recursively with its structure preserved (symbolic links are skipped, so the upload cannot escape the directory); a zip archive is unpacked server-side.",
+      update_url: UPDATE_PARAM_DESC
+    }
+  },
+  // 远程端点专用：名字**刻意**与 publish_path 不同。远程跑在我们的服务器上，
+  // "发布本地路径"在那里等于"读服务器磁盘并公开"——同名同形会让用户以为能传本地文件。
+  publish_files: {
+    title: "Publish files you send in the request and get a link",
+    description: "Publish one or more files supplied inline (path + content) and get a public URL, preserving the given paths. Use this for a page that needs sibling files (CSS, JS, images), or for any document \u2014 Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline. Note: this endpoint runs on the server and cannot read files from the caller's machine \u2014 send the file contents.",
+    params: {
+      files: 'The files to publish. Each entry has a relative path (directories allowed, e.g. "assets/app.css") and its full content as a string.',
+      update_url: UPDATE_PARAM_DESC
+    }
+  }
+};
+
 // index.js
 var BASE = process.env.PLOPINO_BASE_URL || DEFAULT_BASE;
 var TOKEN = (process.env.PLOPINO_TOKEN || "").trim();
-var INSTRUCTIONS = 'Plopino turns content into a public link \u2014 use it whenever the user asks to share, send, publish, or "give me a link to" something. An HTML page (dashboard, report, chart, or single page you just generated): call publish_html. Anything already on disk \u2014 a directory with sibling files, or any document: call publish_path. Documents are first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline \u2014 the recipient opens a link and never downloads a file. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account; every call returns a public URL that opens on any device. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
-var server = new McpServer({ name: "plopino", version: "0.1.10" }, { instructions: INSTRUCTIONS });
+var server = new McpServer({ name: "plopino", version: SERVER_VERSION }, { instructions: INSTRUCTIONS });
 var ok = (url2, note) => ({
   content: [{ type: "text", text: `${url2}
 
@@ -36559,57 +36616,42 @@ var OUTPUT_SCHEMA = {
     "Human-readable status: created vs updated, and how long the page is kept."
   )
 };
-var UPDATE_PARAM = external_exports.string().optional().describe(
-  "A URL returned by an earlier publish. When given, the content of that page is replaced and the link stays the same. Requires the server to be configured with a Plopino token."
-);
+var UPDATE_PARAM = external_exports.string().optional().describe(TOOLS.publish_page.params.update_url);
 function resolveTarget(updateUrl) {
   if (!updateUrl) return { boardId: null };
   if (!TOKEN) {
-    throw new Error(
-      "Updating an existing page requires a Plopino token. Create one at plopino.com/b and set PLOPINO_TOKEN in this server's environment."
-    );
+    throw new Error("Updating an existing page requires a Plopino token. " + TOKEN_HELP);
   }
   const boardId = boardIdFromUrl(updateUrl);
   if (!boardId) throw new Error(`Not a Plopino page URL: ${updateUrl}`);
   return { boardId };
 }
-var TOOL_ANNOTATIONS = {
-  readOnlyHint: false,
-  // 会创建公开内容
-  destructiveHint: false,
-  // 替换走版本历史，旧内容仍可看；没有不可逆销毁
-  idempotentHint: false,
-  // 不带 update_url 的每次调用都会新建一块展板
-  openWorldHint: true
-  // 要访问 plopino.com
-};
-server.registerTool("publish_html", {
-  title: "Publish an HTML page and get a link",
-  description: 'Publish an HTML page to a public URL. Use this whenever the user asks to share, send, publish, or "give me a link to" a page \u2014 for example a dashboard, report, chart, or interactive page you just generated. Returns a public link that opens on any device; no account or configuration needed. Anonymous pages are kept for a month \u2014 with a token, storage is permanent and the page can be updated in place. Prefer this over telling the user to save the file and upload it somewhere themselves.',
+server.registerTool("publish_page", {
+  title: TOOLS.publish_page.title,
+  description: TOOLS.publish_page.description,
   inputSchema: {
-    html: external_exports.string().describe(
-      "The complete HTML document to publish, including the <html> tag. It must be self-contained: relative references to local files will not resolve \u2014 use publish_path when the page needs sibling files (CSS, JS, images)."
-    ),
+    content: external_exports.string().describe(TOOLS.publish_page.params.content),
+    filename: external_exports.string().optional().describe(TOOLS.publish_page.params.filename),
     update_url: UPDATE_PARAM
   },
   annotations: TOOL_ANNOTATIONS,
   outputSchema: OUTPUT_SCHEMA
-}, async ({ html, update_url: updateUrl }) => {
+}, async ({ content, filename, update_url: updateUrl }) => {
   try {
     const { boardId } = resolveTarget(updateUrl);
-    const data = await publishFiles(filesFromHtml(html), { baseUrl: BASE, token: TOKEN, boardId });
-    return ok(data.url, boardId ? "Updated \u2014 the link is unchanged." : "Public \u2014 anyone with this link can open it. Anonymous pages are kept for a month; plopino.com/b makes them permanent.");
+    const files = filesFromContent(content, filename);
+    const data = await publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId });
+    const as = files[0].name === "index.html" ? "" : ` Published as ${files[0].name}.`;
+    return ok(data.url, boardId ? "Updated \u2014 the link is unchanged." : `Public \u2014 anyone with this link can open it.${as} Anonymous pages are kept for a month; plopino.com/b makes them permanent.`);
   } catch (err) {
     return fail(err);
   }
 });
 server.registerTool("publish_path", {
-  title: "Publish a local file or folder and get a link",
-  description: "Publish a local file, a zip, or a whole directory to a public URL, preserving the directory structure. Use this when the page needs sibling files (CSS, JS, images) \u2014 write them into a directory first, then publish that directory. It is also the way to share any document: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, and images and video display inline \u2014 the recipient opens a link instead of downloading a file. (PowerPoint files publish and download fine but have no rendered preview.)",
+  title: TOOLS.publish_path.title,
+  description: TOOLS.publish_path.description,
   inputSchema: {
-    path: external_exports.string().describe(
-      "Absolute path to a file or directory on this machine. A directory is uploaded recursively with its structure preserved (symbolic links are skipped, so the upload cannot escape the directory); a zip archive is unpacked server-side."
-    ),
+    path: external_exports.string().describe(TOOLS.publish_path.params.path),
     update_url: UPDATE_PARAM
   },
   annotations: TOOL_ANNOTATIONS,
