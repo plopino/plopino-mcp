@@ -2,7 +2,7 @@
 // 名称/标题/描述/注解是**模型与目录站看到的字**，两处各写一份迟早会漂——漂了没人会发现，
 // 因为两边都只是"能跑"。参数 schema 不在这里：stdio 侧用 zod 描述、远程侧另有自己的
 // schema（远程没有 publish_path——它不接受服务器本地路径）。
-export const SERVER_VERSION = '0.2.1';
+export const SERVER_VERSION = '0.2.2';
 
 // 服务器级说明（initialize 时返回，客户端会读）。Codex 的文档明确要求把跨工具的用法与约束
 // 放在这里、且前 512 字符能独立成立；Claude Code 等客户端同样会读。放在工具描述之外写，

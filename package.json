@@ -1,6 +1,6 @@
 {
   "name": "plopino",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "mcpName": "io.github.plopino/plopino-mcp",
   "description": "MCP server: publish a page, a document, a file, or a folder to Plopino and get a public URL — documents render as readable pages.",
   "type": "module",
@@ -34,7 +34,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/plopino/plopino-mcp.git"
+    "url": "git+https://github.com/plopino/plopino-mcp.git"
   },
   "bugs": {
     "url": "https://github.com/plopino/plopino-mcp/issues"
