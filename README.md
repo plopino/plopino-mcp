@@ -1,5 +1,45 @@
 # plopino
 
+## CLI: publish with one command
+
+```bash
+npx -y plopino publish ./index.html
+npx -y plopino publish ./dist --json
+npx -y plopino login
+npx -y plopino publish ./dist --update https://plopino.com/b/YOUR_BOARD_ID/
+npx -y plopino whoami
+npx -y plopino logout
+```
+
+`login` prompts for an email and a hidden password. Create an account on the website
+first if needed. Login claims available anonymous uploads made with this CLI's saved
+identity, reports how many were claimed, and saves a session for future uploads.
+An existing `PLOPINO_TOKEN` overrides the saved session for publishing.
+For Google/GitHub-only accounts, use an API token for future uploads; CLI password
+login requires an account with a password.
+
+Cookies are stored per server origin under `~/.config/plopino/`, with owner-only file
+permissions. Override the directory with `PLOPINO_CONFIG_DIR`. Keep this directory to
+retain the ability to claim anonymous uploads. Passwords are never stored. Logging out
+revokes the session but preserves the anonymous identity. Browser and MCP sessions are
+separate: logging in on the website alone does not claim CLI uploads.
+
+For non-interactive login, use `login --email you@example.com --password-stdin`, supplying
+the password through standard input from your secret manager. Do not pass passwords as
+command-line arguments. `--json` gives structured results and errors; errors exit with
+status 1. Default publishing writes only the URL to stdout and status to stderr.
+
+Directory uploads skip `.git`, `.env*`, `node_modules`, `.ssh`, `.aws`, and symbolic links.
+Other files are included; publish the output directory you intend to share. A single
+explicitly selected file is uploaded as requested. Symlink inputs are rejected.
+CLI commands for the same server cannot run concurrently; after a forcibly terminated
+process, the next command identifies any stale lock to remove once no command is running.
+
+For development before the npm release, replace `npx -y plopino` with
+`node /path/to/boards/mcp/index.js` in the examples above.
+
+## MCP
+
 MCP server for [Plopino](https://plopino.com) — lets an AI agent publish what it just built
 and hand back a public link, without the user touching a browser.
 
@@ -27,6 +67,12 @@ content is replaced **while the link stays the same**. This needs a token (see b
 Publishing is **anonymous by default**: no account, no configuration, no API key. The returned
 link is public; without a token the page is kept for a month, with a token it is permanent and
 can be updated in place.
+
+Anonymous creates also return `claimUrl`. It is a private browser link for the publisher:
+open it yourself, sign in, and confirm the claim to keep that page in your account. Do not
+append it to the public URL or share it with page viewers. JSON output includes it as
+`claimUrl`; human output prints it on stderr for CLI publishes and inside the MCP tool result
+for agent publishes.
 
 ## Authentication (optional)
 
@@ -156,7 +202,7 @@ PLOPINO_BASE_URL=https://plopino.com npx -y plopino
 
 ## Requirements
 
-- Node 18 or newer (uses the built-in `fetch`, `FormData` and `Blob`).
+- Node 20 or newer (required by the MCP TypeScript SDK v2).
 - The only runtime dependency is the MCP SDK.
 
 ## Development

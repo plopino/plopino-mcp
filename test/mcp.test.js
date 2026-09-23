@@ -13,6 +13,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { filesFromContent, filesFromPath, publishFiles, boardIdFromUrl } from '../upload.js';
+import { SERVER_VERSION } from '../tool-defs.js';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ENTRY = path.join(DIR, '..', 'index.js');
@@ -86,53 +87,69 @@ test('filesFromPath：空目录与不存在的路径都给出可诊断的错误'
 
 // ── 协议层：真的把服务拉起来说 JSON-RPC ──────────────────────────────
 test('MCP 协议：握手成功、暴露两个工具、stdout 只有 JSON-RPC', async (t) => {
-  // 根目录的 `npm test` 也会扫到这里，但根项目的依赖里没有 MCP SDK。
-  // 缺依赖时跳过而不是失败——否则任何人 clone 下来跑根测试都会看到一片红，
-  // 而那不是他的问题。
+  // 根目录的 `npm test` 也会扫到这里。未安装 mcp/ 的依赖时跳过协议层；
+  // 安装完整的 MCP 包依赖后必须真正完成握手，不能用超时跳过来掩盖回归。
   try {
-    await import('@modelcontextprotocol/sdk/server/mcp.js');
+    await import('@modelcontextprotocol/server');
   } catch {
-    t.skip('未安装 MCP SDK（cd mcp && npm install），跳过协议测试');
+    t.skip('未安装 MCP SDK v2（cd mcp && npm install），跳过协议测试');
     return;
   }
 
   const child = spawn(process.execPath, [ENTRY], { stdio: ['pipe', 'pipe', 'pipe'] });
   t.after(() => child.kill());
+  let stderr = '';
+  child.stderr.on('data', (chunk) => { stderr += chunk.toString('utf8'); });
 
-  const lines = [];
-  let raw = '';
-  let leftover = '';
+  const messages = [];
+  let raw = Buffer.alloc(0);
   child.stdout.on('data', (c) => {
-    raw += c;
-    let i;
-    while ((i = raw.indexOf('\n')) >= 0) {
-      const line = raw.slice(0, i).trim();
-      raw = raw.slice(i + 1);
-      if (line) lines.push(line);
+    raw = Buffer.concat([raw, c]);
+    while (raw.length) {
+      const headerEnd = raw.indexOf('\r\n\r\n');
+      if (headerEnd >= 0) {
+        const header = raw.slice(0, headerEnd).toString('utf8');
+        const len = Number(/content-length:\s*(\d+)/i.exec(header)?.[1] ?? 0);
+        if (!len || raw.length < headerEnd + 4 + len) break;
+        const body = raw.slice(headerEnd + 4, headerEnd + 4 + len).toString('utf8');
+        raw = raw.slice(headerEnd + 4 + len);
+        messages.push(body);
+        continue;
+      }
+      const nl = raw.indexOf('\n');
+      if (nl < 0) break;
+      const line = raw.slice(0, nl).toString('utf8').trim();
+      raw = raw.slice(nl + 1);
+      if (line) messages.push(line);
     }
   });
+
+  const send = (message) => {
+    child.stdin.write(JSON.stringify(message) + '\n');
+  };
 
   const waitFor = (id) => new Promise((resolve, reject) => {
     const t0 = Date.now();
     const tick = () => {
-      const hit = lines.map((l) => { try { return JSON.parse(l); } catch { return null; } })
+      const hit = messages.map((l) => { try { return JSON.parse(l); } catch { return null; } })
         .find((m) => m && m.id === id);
       if (hit) return resolve(hit);
-      if (Date.now() - t0 > 5000) return reject(new Error(`等 id=${id} 超时`));
+      if (Date.now() - t0 > 5000) return reject(new Error(`等 id=${id} 超时；stderr: ${stderr}`));
       setTimeout(tick, 20);
     };
     tick();
   });
 
-  child.stdin.write(JSON.stringify({
+  send({
     jsonrpc: '2.0', id: 1, method: 'initialize',
-    params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'test', version: '1' } },
-  }) + '\n');
+    params: { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '1' } },
+  });
   const init = await waitFor(1);
   assert.equal(init.result.serverInfo.name, 'plopino');
+  assert.equal(init.result.serverInfo.version, SERVER_VERSION);
 
-  child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
-  child.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }) + '\n');
+  send({ jsonrpc: '2.0', method: 'notifications/initialized' });
+  send({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
   const list = await waitFor(2);
   const names = list.result.tools.map((x) => x.name).sort();
   assert.deepEqual(names, ['publish_page', 'publish_path']);
@@ -144,7 +161,7 @@ test('MCP 协议：握手成功、暴露两个工具、stdout 只有 JSON-RPC', 
   }
 
   // stdout 是 MCP 协议通道：任何非 JSON 的输出都会让客户端解析失败
-  for (const l of lines) {
+  for (const l of messages) {
     assert.doesNotThrow(() => JSON.parse(l), `stdout 混入了非 JSON 内容: ${l.slice(0, 80)}`);
   }
 });
@@ -194,6 +211,21 @@ test('publishFiles：更新接口把链接放在 board 里，取值要兼容两�
   assert.equal(updated.url, 'https://p/b/old/', '更新时链接从 board 里取，且应与原来相同');
 });
 
+test('publishFiles：匿名认领链接原样传回调用方', async () => {
+  const files = filesFromContent('<h1>hi</h1>');
+  const fakeFetch = async () => ({
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({
+      url: 'https://plopino.com/b/new/',
+      claimUrl: 'https://plopino.com/claim#token=secret',
+    }),
+  });
+  const created = await publishFiles(files, { fetchImpl: fakeFetch });
+  assert.equal(created.url, 'https://plopino.com/b/new/');
+  assert.equal(created.claimUrl, 'https://plopino.com/claim#token=secret');
+});
+
 test('版本号只有一处真相：package.json 与 tool-defs.js 必须一致', async () => {
   // 客户端在握手里读到的是 SERVER_VERSION（唯一字面量在 tool-defs.js），npm 上的是
   // package.json 那个。两者漂移的话，用户报告"我装的是 0.1.2"而服务自称 0.1.1，
@@ -205,7 +237,7 @@ test('版本号只有一处真相：package.json 与 tool-defs.js 必须一致',
   assert.ok(m, 'tool-defs.js 里的 SERVER_VERSION 没找到（改过写法就同步改这里）');
   assert.equal(m[1], pkg.version, 'tool-defs.js 与 package.json 的版本号不一致');
 
-  const src = await readFile(ENTRY, 'utf8');
+  const src = await readFile(path.join(DIR, '..', 'mcp-server.js'), 'utf8');
   assert.match(src, /new McpServer\(\{ name: 'plopino', version: SERVER_VERSION \}/,
     'index.js 必须用 tool-defs.js 的 SERVER_VERSION，别再写回字面量');
 
@@ -269,7 +301,7 @@ test('dist 的单文件发行版与源码同步（陈旧的分发件比没有更
   // 不钉死的话这个测试会因为"在哪个目录跑"而时红时绿。
   const built = await esbuild.build({
     absWorkingDir: path.join(DIR, '..'),
-    entryPoints: ['index.js'], bundle: true, platform: 'node', format: 'esm', target: 'node18', write: false,
+    entryPoints: ['index.js'], bundle: true, platform: 'node', format: 'esm', target: 'node20', write: false,
   });
   const fresh = built.outputFiles[0].text;
   const onDisk = await readFile(out, 'utf8').catch(() => null);

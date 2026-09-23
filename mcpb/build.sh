@@ -16,7 +16,7 @@ OUT="${1:-plopino.mcpb}"
 STAGE=$(mktemp -d)
 trap 'rm -rf "$STAGE"' EXIT
 
-cp index.js upload.js tool-defs.js package.json package-lock.json "$STAGE/"
+cp index.js mcp-server.js cli.js session.js login.js upload.js tool-defs.js package.json package-lock.json "$STAGE/"
 cp mcpb/manifest.json "$STAGE/manifest.json"
 # README 与图标必须进 bundle：
 #  · Claude 桌面扩展目录要求隐私政策以「README 的 Privacy Policy 小节」形式随包提交，

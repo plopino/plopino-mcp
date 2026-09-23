@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.3",
   "name": "plopino",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Publish a page, a document, a file, or a folder to Plopino and get a public link.",
   "author": {
     "name": "Plopino",
@@ -32,7 +32,7 @@
       "linux"
     ],
     "runtimes": {
-      "node": ">=18"
+      "node": ">=20"
     }
   },
   "keywords": [

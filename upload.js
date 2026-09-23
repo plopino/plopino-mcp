@@ -1,7 +1,7 @@
-// 与 Plopino 上传接口的对接。只用 Node 内置的 fetch / FormData / Blob（Node 18+ 自带），
+// 与 Plopino 上传接口的对接。只用 Node 内置的 fetch / FormData / Blob（Node 20+ 自带），
 // 所以这个包除了 MCP SDK 之外没有别的运行时依赖。
 
-import { readFile, readdir, stat } from 'node:fs/promises';
+import { readFile, readdir, lstat } from 'node:fs/promises';
 import path from 'node:path';
 
 export const DEFAULT_BASE = 'https://plopino.com';
@@ -14,7 +14,7 @@ export const DEFAULT_BASE = 'https://plopino.com';
 // 不给就匿名发布。**认证是可选的**——"不用注册"是这个产品的卖点之一，
 // 不能因为接了 MCP 就把它变成必须品。
 // boardId 给了就是**更新已有展板**（链接不变），只有认证用户能做。
-export async function publishFiles(files, { baseUrl = DEFAULT_BASE, token = '', boardId = null, fetchImpl = fetch, signal } = {}) {
+export async function publishFiles(files, { baseUrl = DEFAULT_BASE, token = '', boardId = null, fetchImpl = fetch, signal, source = 'mcp' } = {}) {
   const form = new FormData();
   for (const f of files) form.append('file', new Blob([f.data]), f.name);
   const route = boardId
@@ -26,7 +26,7 @@ export async function publishFiles(files, { baseUrl = DEFAULT_BASE, token = '', 
       // 自报家门：服务端按这个 UA 给 Umami 的 upload 事件打 source=mcp 标签，
       // MCP 渠道的效果才和网页上传分得开。node 的默认 UA 是 "node"，认不出
       // 也名不正——不能把别人的 Node 程序误标成我们。
-      'User-Agent': 'plopino-mcp',
+      'User-Agent': source === 'cli' ? 'plopino-cli' : 'plopino-mcp',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: form,
@@ -84,15 +84,16 @@ export function filesFromContent(content, filename) {
 }
 
 // 本地路径 → 文件列表。目录递归展开，name 取相对路径。
-export async function filesFromPath(input) {
+export async function filesFromPath(input, { excludePrivate = false } = {}) {
   const abs = path.resolve(input);
-  const st = await stat(abs); // 路径不存在时抛出原始错误，比"上传失败"可诊断
+  const st = await lstat(abs);
   if (st.isFile()) return [{ name: path.basename(abs), data: await readFile(abs) }];
   if (!st.isDirectory()) throw new Error(`Not a file or directory: ${input}`);
 
   const out = [];
   async function walk(dir, prefix) {
     for (const e of await readdir(dir, { withFileTypes: true })) {
+      if (excludePrivate && (['.git', 'node_modules', '.ssh', '.aws'].includes(e.name) || e.name.startsWith('.env'))) continue;
       const rel = prefix ? `${prefix}/${e.name}` : e.name;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) await walk(full, rel);
