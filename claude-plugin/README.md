@@ -2,6 +2,17 @@
 
 Publish pages, reports, documents, and multi-file bundles from Claude and get a public link that opens on any device.
 
+## Install
+
+In Claude Code:
+
+```bash
+claude plugin marketplace add plopino/plopino-mcp
+claude plugin install plopino@plopino
+```
+
+For Claude Desktop's local MCP server, download and open [plopino.mcpb](https://github.com/plopino/plopino-mcp/releases/latest/download/plopino.mcpb). The plugin above uses Plopino's remote MCP endpoint; the MCPB runs the server locally.
+
 ## Use it
 
 Ask Claude to publish the page or document it just produced, or to share several related files as one link. Claude calls Plopino's `publish_page` or `publish_files` tool and returns the public URL. Markdown, CSV, and code files render as readable pages; HTML renders as a page.

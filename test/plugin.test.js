@@ -33,6 +33,25 @@ test('Claude plugin connects only to the production remote MCP endpoint', async 
   assert.equal(manifest.userConfig.token.required, false);
 });
 
+test('Claude Code marketplace lists the Plopino plugin from this repository', async () => {
+  const manifest = await readJson('.claude-plugin/plugin.json');
+  const marketplace = JSON.parse(await readFile(
+    path.join(DIR, '..', '.claude-plugin', 'marketplace.json'), 'utf8'));
+  assert.equal(marketplace.name, 'plopino');
+  assert.equal(marketplace.owner.name, 'Plopino');
+  assert.equal(marketplace.plugins.length, 1);
+  const entry = marketplace.plugins[0];
+  assert.equal(entry.name, manifest.name, 'marketplace and manifest names must match');
+  assert.equal(entry.source, './claude-plugin');
+});
+
+test('Claude plugin README explains free installation paths', async () => {
+  const readme = await readFile(path.join(PLUGIN, 'README.md'), 'utf8');
+  assert.match(readme, /claude plugin marketplace add plopino\/plopino-mcp/);
+  assert.match(readme, /claude plugin install plopino@plopino/);
+  assert.match(readme, /releases\/latest\/download\/plopino\.mcpb/);
+});
+
 test('Claude plugin README meets the directory minimum and discloses data handling', async () => {
   const readme = await readFile(path.join(PLUGIN, 'README.md'), 'utf8');
   const prose = readme.replace(/```[\s\S]*?```/g, '');

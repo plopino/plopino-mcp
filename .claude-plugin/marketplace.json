@@ -1,0 +1,23 @@
+{
+  "name": "plopino",
+  "owner": {
+    "name": "Plopino",
+    "url": "https://plopino.com"
+  },
+  "description": "Publish pages, documents, and multi-file bundles to public Plopino links from Claude.",
+  "plugins": [
+    {
+      "name": "plopino",
+      "source": "./claude-plugin",
+      "description": "Publish a page, document, report, or multi-file bundle and get a public link.",
+      "category": "productivity",
+      "tags": [
+        "publishing",
+        "sharing",
+        "documents",
+        "html",
+        "links"
+      ]
+    }
+  ]
+}
