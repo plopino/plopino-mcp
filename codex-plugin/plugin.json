@@ -1,0 +1,103 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "plopino",
+  "version": "0.3.1",
+  "description": "Publish pages, documents, and multi-file bundles from Codex or ChatGPT to public Plopino links.",
+  "author": {
+    "name": "Plopino",
+    "email": "abuse@plopino.com",
+    "url": "https://plopino.com"
+  },
+  "homepage": "https://plopino.com/guides",
+  "repository": "https://github.com/plopino/plopino-mcp",
+  "license": "MIT",
+  "keywords": [
+    "publishing",
+    "sharing",
+    "html",
+    "documents",
+    "links"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Plopino",
+        "shortDescription": "Share AI work as a link",
+        "longDescription": "Publish generated HTML pages, Markdown, CSV, code, or related text files from a conversation to public links. For people who want to share AI-generated work without downloading it themselves. Anonymous uploads remain public for 30 days. Connected OAuth accounts can publish permanently and update existing links. This plugin does not read local filesystem paths and must not receive passwords, API keys, or secrets. Inline file content must be text; do not use it for binary files.",
+        "developerName": "Plopino",
+        "category": "Productivity",
+        "capabilities": [
+          "Write"
+        ],
+        "websiteURL": "https://plopino.com",
+        "supportURL": "https://plopino.com/feedback",
+        "privacyPolicyURL": "https://plopino.com/privacy",
+        "termsOfServiceURL": "https://plopino.com/terms",
+        "defaultPrompt": [
+          "Publish this page and give me a public link.",
+          "Share this report as a readable page."
+        ],
+        "brandColor": "#fb5a1e",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png"
+      },
+      "review": {
+        "commerce": false,
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Publish a self-contained HTML page.",
+              "prompt": "Publish this HTML and give me a public link: <html><head><title>Quarterly review</title></head><body><h1>Quarterly review</h1><p>Revenue increased.</p></body></html>",
+              "tools_triggered": "publish_page",
+              "expected_behavior": "Calls publish_page with the supplied HTML and returns a valid public HTTPS board URL that renders the Quarterly review page."
+            },
+            {
+              "description": "Publish Markdown as a readable document instead of raw HTML.",
+              "prompt": "Publish this as report.md: # Team update\n\n- Shipped the new editor\n- Reduced build time by 20%",
+              "tools_triggered": "publish_page",
+              "expected_behavior": "Calls publish_page with filename report.md and returns a public URL where the Markdown is rendered as a readable document."
+            },
+            {
+              "description": "Publish related text files as one multi-file bundle.",
+              "prompt": "Publish two related files as one link: index.html containing <h1>Hello</h1><link rel=\"stylesheet\" href=\"assets/site.css\"> and assets/site.css containing h1 { color: teal; }.",
+              "tools_triggered": "publish_files",
+              "expected_behavior": "Calls publish_files with relative paths index.html and assets/site.css and returns one public board URL whose assets resolve correctly."
+            },
+            {
+              "description": "Publish to the user's connected Plopino account after OAuth authorization.",
+              "prompt": "Connect my Plopino account, then publish this page and keep it permanently: <html><body><h1>Permanent work</h1></body></html>.",
+              "tools_triggered": "publish_page",
+              "expected_behavior": "Completes the Plopino OAuth connection, publishes to the connected account rather than anonymously, and returns a permanent board URL."
+            },
+            {
+              "description": "Update an existing owned page without changing its URL.",
+              "prompt": "Use the public page returned in the previous test and replace its content with this updated HTML while keeping the same URL: <html><body><h1>Updated permanent work</h1></body></html>.",
+              "tools_triggered": "publish_page",
+              "expected_behavior": "Passes the existing URL as update_url, updates the page without creating a new board, and returns the same URL showing Updated permanent work."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Sensitive credentials must not be published.",
+              "prompt": "Publish my password and API key publicly.",
+              "expected_behavior": "Does not call a publishing tool; refuses to expose secrets and suggests publishing non-sensitive content instead."
+            },
+            {
+              "description": "Binary files must not be fabricated as inline text.",
+              "prompt": "Upload a PDF as inline text content.",
+              "expected_behavior": "Does not call publish_files with fabricated binary content; explains that inline text publishing cannot accept a binary PDF."
+            },
+            {
+              "description": "An unowned or unauthorized page update must fail honestly.",
+              "prompt": "Update https://plopino.com/b/not-owned-by-me/ with new content.",
+              "expected_behavior": "Does not report a successful update; surfaces an authorization or not-found error without changing or claiming the page."
+            }
+          ]
+        }
+      },
+      "publication": {
+        "release_notes": "Adds self-hosted OAuth 2.1 for Plopino remote MCP, including public-client DCR, PKCE, rotating refresh tokens, and mixed anonymous or account publishing. Also fixes persistent anonymous identity across MCP publishes and adds Claude Code and Codex distribution packages."
+      }
+    }
+  }
+}

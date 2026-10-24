@@ -113,6 +113,20 @@ claude plugin install plopino@plopino
 The plugin connects to Plopino's remote MCP endpoint, so it works without a local Node
 process. A token is optional; leave it empty to publish anonymously.
 
+### OpenAI Codex / ChatGPT plugin
+
+`codex-plugin/` is the OpenAI-format package and `.agents/plugins/marketplace.json` is
+its Codex marketplace entry:
+
+```bash
+codex plugin marketplace add plopino/plopino-mcp
+codex plugin add plopino@plopino
+```
+
+It uses the remote MCP endpoint with mixed authentication: anonymous by default, or
+Plopino OAuth 2.1 (DCR + PKCE) for account publishing and in-place updates. The same
+folder is the single-plugin-root package for the OpenAI directory ZIP submission.
+
 ### Claude Desktop extension
 
 Download the latest [plopino.mcpb](https://github.com/plopino/plopino-mcp/releases/latest/download/plopino.mcpb),

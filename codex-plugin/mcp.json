@@ -1,0 +1,25 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "plopino": {
+      "type": "streamable-http",
+      "url": "https://plopino.com/mcp",
+      "extensions": {
+        "com.openai": {
+          "auth": {
+            "type": "mixed",
+            "client": {
+              "mode": "dcr"
+            },
+            "authorizationServerBase": "https://plopino.com",
+            "registrationUrl": "https://plopino.com/oauth/register",
+            "resource": "https://plopino.com/mcp",
+            "baseScopes": [
+              "publish"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
