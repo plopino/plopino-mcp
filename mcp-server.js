@@ -13,6 +13,7 @@ import { McpServer } from '@modelcontextprotocol/server';
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio';
 import { z } from 'zod';
 import { publishFiles, filesFromContent, filesFromPath, boardIdFromUrl, DEFAULT_BASE } from './upload.js';
+import { openSession } from './session.js';
 import {
   SERVER_VERSION, INSTRUCTIONS, TOOL_ANNOTATIONS, TOOLS, TOKEN_HELP,
 } from './tool-defs.js';
@@ -21,6 +22,28 @@ import {
 const BASE = process.env.PLOPINO_BASE_URL || DEFAULT_BASE;
 // 在 plopino.com/b 生成（服务端只存哈希，明文只显示一次）
 const TOKEN = (process.env.PLOPINO_TOKEN || '').trim();
+
+// Reuse the CLI's cookie jar for every anonymous publish so identity survives
+// both tool calls and MCP restarts. Hold its lock only for the request: MCP
+// processes are often killed directly, and a process-lifetime lock would also
+// prevent `plopino login` from claiming these uploads while the server runs.
+// Serialize calls in this process because the CLI jar rejects concurrent writers.
+// Account publishing remains explicit through PLOPINO_TOKEN, as before.
+let publishQueue = Promise.resolve();
+function publishWithIdentity(files, boardId) {
+  // Explicit account credentials never depended on local anonymous state.
+  if (TOKEN) return publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId });
+  const run = publishQueue.then(async () => {
+    const session = await openSession(BASE, { includeAccount: false });
+    try {
+      return await publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId, fetchImpl: session.fetch });
+    } finally {
+      await session.close();
+    }
+  });
+  publishQueue = run.catch(() => {});
+  return run;
+}
 
 const server = new McpServer({ name: 'plopino', version: SERVER_VERSION }, { instructions: INSTRUCTIONS });
 
@@ -74,7 +97,7 @@ server.registerTool('publish_page', {
   try {
     const { boardId } = resolveTarget(updateUrl);
     const files = filesFromContent(content, filename);
-    const data = await publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId });
+    const data = await publishWithIdentity(files, boardId);
     // 非默认文件名时告诉模型它叫什么：链接里看不出文件名，而"这是 report.md 不是页面"会影响后续判断
     const as = files[0].name === 'index.html' ? '' : ` Published as ${files[0].name}.`;
     const owned = data.anonymous === false || !!data.meta?.owner || !!TOKEN;
@@ -100,7 +123,7 @@ server.registerTool('publish_path', {
   try {
     const { boardId } = resolveTarget(updateUrl);
     const files = await filesFromPath(p);
-    const data = await publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId });
+    const data = await publishWithIdentity(files, boardId);
     const owned = data.anonymous === false || !!data.meta?.owner || !!TOKEN;
     return ok(data.url, boardId
       ? `Updated with ${files.length} file${files.length > 1 ? 's' : ''} — the link is unchanged.`

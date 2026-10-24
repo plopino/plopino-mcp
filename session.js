@@ -4,7 +4,7 @@ import path from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 
 // One cookie jar per exact origin. Never follow redirects carrying credentials.
-export async function openSession(base) {
+export async function openSession(base, { includeAccount = true } = {}) {
   const url = new URL(base);
   if (url.username || url.password || url.search || url.hash || url.pathname !== '/') {
     throw new Error('PLOPINO_BASE_URL must be an origin without a path or credentials.');
@@ -12,6 +12,7 @@ export async function openSession(base) {
   if (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname))) {
     throw new Error('Use HTTPS for Plopino (HTTP is allowed only on loopback).');
   }
+  const cookieNames = includeAccount ? ['boards_anon', 'gw_session'] : ['boards_anon'];
   const dir = process.env.PLOPINO_CONFIG_DIR || path.join(homedir(), '.config', 'plopino');
   await mkdir(dir, { recursive: true, mode: 0o700 });
   const file = path.join(dir, createHash('sha256').update(url.origin).digest('hex') + '.json');
@@ -43,17 +44,17 @@ export async function openSession(base) {
       if (new URL(input).origin !== url.origin) throw new Error('Refusing to send CLI cookies to another origin.');
       const headers = new Headers(options.headers);
       const cookie = Object.entries(cookies)
-        .filter(([name, c]) => ['boards_anon', 'gw_session'].includes(name) && c.expires > Date.now())
+        .filter(([name, c]) => cookieNames.includes(name) && c.expires > Date.now())
         .map(([name, c]) => `${name}=${c.value}`).join('; ');
       if (cookie) headers.set('Cookie', cookie);
-      headers.set('User-Agent', 'plopino-cli');
+      if (!headers.has('User-Agent')) headers.set('User-Agent', 'plopino-cli');
       const res = await fetch(input, { ...options, headers, redirect: 'manual', signal: options.signal || AbortSignal.timeout(120_000) });
       const setCookies = res.headers.getSetCookie?.() || (res.headers.get('set-cookie') || '').split(/,(?=\s*\w+=)/);
       for (const raw of setCookies) {
         const [pair, ...attrs] = raw.split(';');
         const i = pair.indexOf('=');
         const name = pair.slice(0, i).trim();
-        if (!['boards_anon', 'gw_session'].includes(name)) continue;
+        if (!cookieNames.includes(name)) continue;
         const value = pair.slice(i + 1).trim();
         const maxAge = attrs.find(a => /^\s*max-age=/i.test(a));
         const expiresAttr = attrs.find(a => /^\s*expires=/i.test(a));
@@ -65,6 +66,6 @@ export async function openSession(base) {
       await save();
       return res;
     };
-    return { fetch: fetchWithCookies, close, hasSession: () => !!cookies.gw_session };
+    return { fetch: fetchWithCookies, close, hasSession: () => includeAccount && !!cookies.gw_session };
   } catch (err) { await close(); throw err; }
 }

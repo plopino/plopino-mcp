@@ -68,6 +68,12 @@ Publishing is **anonymous by default**: no account, no configuration, no API key
 link is public; without a token the page is kept for a month, with a token it is permanent and
 can be updated in place.
 
+The stdio MCP server reuses the CLI's per-origin anonymous cookie in
+`~/.config/plopino/` (override with `PLOPINO_CONFIG_DIR`). Repeated publishes and MCP restarts
+therefore keep the same anonymous identity, and `plopino login` can claim those uploads. MCP
+does not use the saved CLI login session; account publishing and updates still require
+`PLOPINO_TOKEN`.
+
 Anonymous creates also return `claimUrl`. It is a private browser link for the publisher:
 open it yourself, sign in, and confirm the claim to keep that page in your account. Do not
 append it to the public URL or share it with page viewers. JSON output includes it as
@@ -230,7 +236,8 @@ Full policy: **https://plopino.com/privacy**
 - **What is collected.** Only what publishing requires: the file contents and file names you
   pass to a tool, the destination URL, and — for anonymous publishes — the requesting IP
   address (used for the daily rate limit). The MCP server itself collects nothing and sends
-  no telemetry; it runs locally and writes only to stderr.
+  no telemetry; it runs locally and logs only to stderr. Anonymous publishing writes the local
+  identity cookie described above.
 - **How it is used and stored.** Uploaded content is stored on Plopino's servers and served
   from the returned public link. A `PLOPINO_TOKEN` is stored locally in your MCP client
   configuration; the server keeps only its SHA-256 hash.

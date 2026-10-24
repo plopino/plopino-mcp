@@ -34523,11 +34523,93 @@ var init_upload = __esm({
   }
 });
 
+// session.js
+import { mkdir, readFile as readFile2, writeFile, rename, open as open2, unlink, chmod } from "node:fs/promises";
+import { homedir } from "node:os";
+import path2 from "node:path";
+import { createHash, randomBytes } from "node:crypto";
+async function openSession(base, { includeAccount = true } = {}) {
+  const url2 = new URL(base);
+  if (url2.username || url2.password || url2.search || url2.hash || url2.pathname !== "/") {
+    throw new Error("PLOPINO_BASE_URL must be an origin without a path or credentials.");
+  }
+  if (url2.protocol !== "https:" && !(url2.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url2.hostname))) {
+    throw new Error("Use HTTPS for Plopino (HTTP is allowed only on loopback).");
+  }
+  const cookieNames = includeAccount ? ["boards_anon", "gw_session"] : ["boards_anon"];
+  const dir = process.env.PLOPINO_CONFIG_DIR || path2.join(homedir(), ".config", "plopino");
+  await mkdir(dir, { recursive: true, mode: 448 });
+  const file2 = path2.join(dir, createHash("sha256").update(url2.origin).digest("hex") + ".json");
+  const lockFile = file2 + ".lock";
+  let lock;
+  try {
+    lock = await open2(lockFile, "wx", 384);
+  } catch (err) {
+    if (err.code === "EEXIST") throw new Error(`Another CLI command is using this session. If no command is running, remove the stale lock: ${lockFile}`);
+    throw err;
+  }
+  const close = async () => {
+    await lock.close();
+    await unlink(lockFile);
+  };
+  let cookies;
+  try {
+    try {
+      cookies = JSON.parse(await readFile2(file2, "utf8")).cookies;
+    } catch (err) {
+      if (err.code !== "ENOENT") throw err;
+      cookies = {};
+    }
+    if (!cookies || typeof cookies !== "object" || Array.isArray(cookies)) throw new Error("Invalid CLI cookie file.");
+    const save = async () => {
+      const tmp = file2 + ".tmp";
+      await writeFile(tmp, JSON.stringify({ cookies }) + "\n", { mode: 384 });
+      await chmod(tmp, 384);
+      await rename(tmp, file2);
+    };
+    if (!cookies.boards_anon || cookies.boards_anon.expires <= Date.now()) {
+      cookies.boards_anon = { value: randomBytes(32).toString("base64url"), expires: Date.now() + 365 * 864e5 };
+    }
+    await save();
+    const fetchWithCookies = async (input2, options = {}) => {
+      if (new URL(input2).origin !== url2.origin) throw new Error("Refusing to send CLI cookies to another origin.");
+      const headers = new Headers(options.headers);
+      const cookie = Object.entries(cookies).filter(([name, c]) => cookieNames.includes(name) && c.expires > Date.now()).map(([name, c]) => `${name}=${c.value}`).join("; ");
+      if (cookie) headers.set("Cookie", cookie);
+      if (!headers.has("User-Agent")) headers.set("User-Agent", "plopino-cli");
+      const res = await fetch(input2, { ...options, headers, redirect: "manual", signal: options.signal || AbortSignal.timeout(12e4) });
+      const setCookies = res.headers.getSetCookie?.() || (res.headers.get("set-cookie") || "").split(/,(?=\s*\w+=)/);
+      for (const raw of setCookies) {
+        const [pair, ...attrs] = raw.split(";");
+        const i = pair.indexOf("=");
+        const name = pair.slice(0, i).trim();
+        if (!cookieNames.includes(name)) continue;
+        const value = pair.slice(i + 1).trim();
+        const maxAge = attrs.find((a) => /^\s*max-age=/i.test(a));
+        const expiresAttr = attrs.find((a) => /^\s*expires=/i.test(a));
+        const expires = maxAge ? Date.now() + Number(maxAge.split("=")[1]) * 1e3 : expiresAttr ? Date.parse(expiresAttr.slice(expiresAttr.indexOf("=") + 1)) : Date.now() + 30 * 864e5;
+        if (!value || expires <= Date.now()) delete cookies[name];
+        else cookies[name] = { value, expires };
+      }
+      await save();
+      return res;
+    };
+    return { fetch: fetchWithCookies, close, hasSession: () => includeAccount && !!cookies.gw_session };
+  } catch (err) {
+    await close();
+    throw err;
+  }
+}
+var init_session = __esm({
+  "session.js"() {
+  }
+});
+
 // tool-defs.js
 var SERVER_VERSION, INSTRUCTIONS, TOOL_ANNOTATIONS, UPDATE_PARAM_DESC, TOKEN_HELP, TOOLS;
 var init_tool_defs = __esm({
   "tool-defs.js"() {
-    SERVER_VERSION = "0.3.0";
+    SERVER_VERSION = "0.3.1";
     INSTRUCTIONS = 'Plopino turns content into a public link \u2014 use it whenever the user asks to share, send, publish, or "give me a link to" something. When you have the content itself in hand: call publish_page \u2014 an HTML page (dashboard, report, chart, or single page you just generated), or a Markdown / CSV / code / data document, passing the filename so it renders as itself. Anything already on disk \u2014 a directory with sibling files, or any file: call publish_path. Documents are first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline \u2014 the recipient opens a link and never downloads a file. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account; every call returns a public URL that opens on any device. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
     TOOL_ANNOTATIONS = {
       readOnlyHint: false,
@@ -34575,6 +34657,20 @@ var init_tool_defs = __esm({
 
 // mcp-server.js
 var mcp_server_exports = {};
+function publishWithIdentity(files, boardId) {
+  if (TOKEN) return publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId });
+  const run = publishQueue.then(async () => {
+    const session = await openSession(BASE, { includeAccount: false });
+    try {
+      return await publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId, fetchImpl: session.fetch });
+    } finally {
+      await session.close();
+    }
+  });
+  publishQueue = run.catch(() => {
+  });
+  return run;
+}
 function resolveTarget(updateUrl) {
   if (!updateUrl) return { boardId: null };
   if (!TOKEN) {
@@ -34584,16 +34680,18 @@ function resolveTarget(updateUrl) {
   if (!boardId) throw new Error(`Not a Plopino page URL: ${updateUrl}`);
   return { boardId };
 }
-var BASE, TOKEN, server, ok, fail, OUTPUT_SCHEMA, UPDATE_PARAM;
+var BASE, TOKEN, publishQueue, server, ok, fail, OUTPUT_SCHEMA, UPDATE_PARAM;
 var init_mcp_server = __esm({
   async "mcp-server.js"() {
     init_dist();
     init_stdio();
     init_zod();
     init_upload();
+    init_session();
     init_tool_defs();
     BASE = process.env.PLOPINO_BASE_URL || DEFAULT_BASE;
     TOKEN = (process.env.PLOPINO_TOKEN || "").trim();
+    publishQueue = Promise.resolve();
     server = new McpServer({ name: "plopino", version: SERVER_VERSION }, { instructions: INSTRUCTIONS });
     ok = (url2, note, claimUrl) => ({
       content: [{ type: "text", text: `${url2}
@@ -34629,7 +34727,7 @@ Private claim link for the publisher only (never append it to the public share U
       try {
         const { boardId } = resolveTarget(updateUrl);
         const files = filesFromContent(content, filename);
-        const data = await publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId });
+        const data = await publishWithIdentity(files, boardId);
         const as = files[0].name === "index.html" ? "" : ` Published as ${files[0].name}.`;
         const owned = data.anonymous === false || !!data.meta?.owner || !!TOKEN;
         return ok(
@@ -34654,7 +34752,7 @@ Private claim link for the publisher only (never append it to the public share U
       try {
         const { boardId } = resolveTarget(updateUrl);
         const files = await filesFromPath(p);
-        const data = await publishFiles(files, { baseUrl: BASE, token: TOKEN, boardId });
+        const data = await publishWithIdentity(files, boardId);
         const owned = data.anonymous === false || !!data.meta?.owner || !!TOKEN;
         return ok(
           data.url,
@@ -34671,87 +34769,6 @@ Private claim link for the publisher only (never append it to the public share U
       process.stdin.on("end", resolve);
       process.stdin.on("close", resolve);
     });
-  }
-});
-
-// session.js
-import { mkdir, readFile as readFile2, writeFile, rename, open as open2, unlink, chmod } from "node:fs/promises";
-import { homedir } from "node:os";
-import path2 from "node:path";
-import { createHash, randomBytes } from "node:crypto";
-async function openSession(base) {
-  const url2 = new URL(base);
-  if (url2.username || url2.password || url2.search || url2.hash || url2.pathname !== "/") {
-    throw new Error("PLOPINO_BASE_URL must be an origin without a path or credentials.");
-  }
-  if (url2.protocol !== "https:" && !(url2.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url2.hostname))) {
-    throw new Error("Use HTTPS for Plopino (HTTP is allowed only on loopback).");
-  }
-  const dir = process.env.PLOPINO_CONFIG_DIR || path2.join(homedir(), ".config", "plopino");
-  await mkdir(dir, { recursive: true, mode: 448 });
-  const file2 = path2.join(dir, createHash("sha256").update(url2.origin).digest("hex") + ".json");
-  const lockFile = file2 + ".lock";
-  let lock;
-  try {
-    lock = await open2(lockFile, "wx", 384);
-  } catch (err) {
-    if (err.code === "EEXIST") throw new Error(`Another CLI command is using this session. If no command is running, remove the stale lock: ${lockFile}`);
-    throw err;
-  }
-  const close = async () => {
-    await lock.close();
-    await unlink(lockFile);
-  };
-  let cookies;
-  try {
-    try {
-      cookies = JSON.parse(await readFile2(file2, "utf8")).cookies;
-    } catch (err) {
-      if (err.code !== "ENOENT") throw err;
-      cookies = {};
-    }
-    if (!cookies || typeof cookies !== "object" || Array.isArray(cookies)) throw new Error("Invalid CLI cookie file.");
-    const save = async () => {
-      const tmp = file2 + ".tmp";
-      await writeFile(tmp, JSON.stringify({ cookies }) + "\n", { mode: 384 });
-      await chmod(tmp, 384);
-      await rename(tmp, file2);
-    };
-    if (!cookies.boards_anon || cookies.boards_anon.expires <= Date.now()) {
-      cookies.boards_anon = { value: randomBytes(32).toString("base64url"), expires: Date.now() + 365 * 864e5 };
-    }
-    await save();
-    const fetchWithCookies = async (input2, options = {}) => {
-      if (new URL(input2).origin !== url2.origin) throw new Error("Refusing to send CLI cookies to another origin.");
-      const headers = new Headers(options.headers);
-      const cookie = Object.entries(cookies).filter(([name, c]) => ["boards_anon", "gw_session"].includes(name) && c.expires > Date.now()).map(([name, c]) => `${name}=${c.value}`).join("; ");
-      if (cookie) headers.set("Cookie", cookie);
-      headers.set("User-Agent", "plopino-cli");
-      const res = await fetch(input2, { ...options, headers, redirect: "manual", signal: options.signal || AbortSignal.timeout(12e4) });
-      const setCookies = res.headers.getSetCookie?.() || (res.headers.get("set-cookie") || "").split(/,(?=\s*\w+=)/);
-      for (const raw of setCookies) {
-        const [pair, ...attrs] = raw.split(";");
-        const i = pair.indexOf("=");
-        const name = pair.slice(0, i).trim();
-        if (!["boards_anon", "gw_session"].includes(name)) continue;
-        const value = pair.slice(i + 1).trim();
-        const maxAge = attrs.find((a) => /^\s*max-age=/i.test(a));
-        const expiresAttr = attrs.find((a) => /^\s*expires=/i.test(a));
-        const expires = maxAge ? Date.now() + Number(maxAge.split("=")[1]) * 1e3 : expiresAttr ? Date.parse(expiresAttr.slice(expiresAttr.indexOf("=") + 1)) : Date.now() + 30 * 864e5;
-        if (!value || expires <= Date.now()) delete cookies[name];
-        else cookies[name] = { value, expires };
-      }
-      await save();
-      return res;
-    };
-    return { fetch: fetchWithCookies, close, hasSession: () => !!cookies.gw_session };
-  } catch (err) {
-    await close();
-    throw err;
-  }
-}
-var init_session = __esm({
-  "session.js"() {
   }
 });
 
