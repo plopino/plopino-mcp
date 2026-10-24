@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "plopino": {
+      "type": "http",
+      "url": "https://plopino.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${user_config.token}"
+      }
+    }
+  }
+}
