@@ -18,20 +18,24 @@ An existing `PLOPINO_TOKEN` overrides the saved session for publishing.
 For Google/GitHub-only accounts, use an API token for future uploads; CLI password
 login requires an account with a password.
 
-Cookies are stored per server origin under `~/.config/plopino/`, with owner-only file
-permissions. Override the directory with `PLOPINO_CONFIG_DIR`. Keep this directory to
-retain the ability to claim anonymous uploads. Passwords are never stored. Logging out
-revokes the session but preserves the anonymous identity. Browser and MCP sessions are
-separate: logging in on the website alone does not claim CLI uploads.
+Cookies are stored as unencrypted JSON per server origin under `~/.config/plopino/`.
+The directory is created with mode `0700` and cookie files are written with `0600`;
+this restricts access to your OS user but is not encryption. Override the directory with
+`PLOPINO_CONFIG_DIR`.
+Keep this directory to retain the ability to claim anonymous uploads. Passwords are
+never stored. Logging out revokes the saved account session but preserves the anonymous
+identity; log out before handing a shared OS account to someone else. Browser and MCP
+sessions are separate: logging in on the website alone does not claim CLI uploads.
 
 For non-interactive login, use `login --email you@example.com --password-stdin`, supplying
 the password through standard input from your secret manager. Do not pass passwords as
 command-line arguments. `--json` gives structured results and errors; errors exit with
 status 1. Default publishing writes only the URL to stdout and status to stderr.
 
-Directory uploads skip `.git`, `.env*`, `node_modules`, `.ssh`, `.aws`, and symbolic links.
-Other files are included; publish the output directory you intend to share. A single
-explicitly selected file is uploaded as requested. Symlink inputs are rejected.
+Both CLI and MCP directory uploads skip `.git`, `.env*`, `node_modules`, `.ssh`, `.aws`,
+and symbolic links. Other files are included; publish the output directory you intend to
+share. A single explicitly selected file is uploaded as requested, so never select
+credentials or other secrets. Symlink inputs are rejected.
 CLI commands for the same server cannot run concurrently; after a forcibly terminated
 process, the next command identifies any stale lock to remove once no command is running.
 

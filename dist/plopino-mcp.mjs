@@ -14,10 +14,10 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// node_modules/@modelcontextprotocol/server/dist/chunk-Br0eD_fh.mjs
+// node_modules/@modelcontextprotocol/server/dist/chunk-vYduTEsO.mjs
 var __create, __defProp2, __getOwnPropDesc, __getOwnPropNames2, __getProtoOf, __hasOwnProp, __commonJSMin, __exportAll, __copyProps, __toESM;
-var init_chunk_Br0eD_fh = __esm({
-  "node_modules/@modelcontextprotocol/server/dist/chunk-Br0eD_fh.mjs"() {
+var init_chunk_vYduTEsO = __esm({
+  "node_modules/@modelcontextprotocol/server/dist/chunk-vYduTEsO.mjs"() {
     __create = Object.create;
     __defProp2 = Object.defineProperty;
     __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -59,7 +59,7 @@ var init_chunk_Br0eD_fh = __esm({
   }
 });
 
-// node_modules/@modelcontextprotocol/server/dist/dialects-DoSzNhcb.mjs
+// node_modules/@modelcontextprotocol/server/dist/dialects-CDpMbily.mjs
 function declares2019Dialect($schema) {
   return typeof $schema === "string" && DRAFT_2019_09_URIS.has($schema.replace(/#$/, ""));
 }
@@ -72,8 +72,8 @@ function declaredDialect(schema, remedy) {
   throw new Error(`JSON Schema declares an unsupported dialect ("$schema": "${schema.$schema.slice(0, 200)}"). The default validator supports JSON Schema 2020-12, 2019-09, draft-07, and draft-06; ${remedy}`);
 }
 var DRAFT_2020_12_URIS, DRAFT_2019_09_URIS, DRAFT_07_URIS, DRAFT_06_URIS;
-var init_dialects_DoSzNhcb = __esm({
-  "node_modules/@modelcontextprotocol/server/dist/dialects-DoSzNhcb.mjs"() {
+var init_dialects_CDpMbily = __esm({
+  "node_modules/@modelcontextprotocol/server/dist/dialects-CDpMbily.mjs"() {
     DRAFT_2020_12_URIS = /* @__PURE__ */ new Set(["https://json-schema.org/draft/2020-12/schema", "http://json-schema.org/draft/2020-12/schema"]);
     DRAFT_2019_09_URIS = /* @__PURE__ */ new Set(["https://json-schema.org/draft/2019-09/schema", "http://json-schema.org/draft/2019-09/schema"]);
     DRAFT_07_URIS = /* @__PURE__ */ new Set(["https://json-schema.org/draft-07/schema", "http://json-schema.org/draft-07/schema"]);
@@ -152,6 +152,7 @@ __export(util_exports, {
   required: () => required,
   safeExtend: () => safeExtend,
   shallowClone: () => shallowClone,
+  sizeCaps: () => sizeCaps,
   slugify: () => slugify,
   stringifyPrimitive: () => stringifyPrimitive,
   toZod: () => toZod,
@@ -574,6 +575,18 @@ function prefixIssues(path3, issues) {
 }
 function unwrapMessage(message) {
   return typeof message === "string" ? message : message?.message;
+}
+function sizeCaps(defChecks) {
+  const caps = [];
+  for (const ch of defChecks ?? []) {
+    const d = ch._zod.def;
+    if (!/_(length|size)$|_equals$/.test(d.check))
+      break;
+    const max = d.maximum ?? d.length ?? d.size;
+    if (max >= 0)
+      caps.push([max, ch]);
+  }
+  return caps;
 }
 function attachSchema(issues, start, inst) {
   var _a3;
@@ -2138,7 +2151,7 @@ var init_versions = __esm({
     version = {
       major: 4,
       minor: 6,
-      patch: 5
+      patch: 7
     };
   }
 });
@@ -2299,6 +2312,28 @@ function isValidJWT(token, algorithm = null) {
   } catch {
     return false;
   }
+}
+function capSize(inst, size) {
+  const caps = sizeCaps(inst._zod.def.checks);
+  if (!caps.length)
+    return;
+  const cap = Math.min(...caps.map((c) => c[0]));
+  const parse3 = inst._zod.parse;
+  inst._zod.parse = (payload, ctx) => {
+    const n = size(payload.value);
+    if (n > cap && !ctx?.skipChecks && ctx?.direction !== "backward") {
+      for (const [max, ch] of sizeCaps(inst._zod.def.checks)) {
+        if (n > max && ch._zod.def.when(payload)) {
+          const start = payload.issues.length;
+          ch._zod.check(payload);
+          payload.issues[start].continue = false;
+          attachSchema(payload.issues, start, inst);
+          return payload;
+        }
+      }
+    }
+    return parse3(payload, ctx);
+  };
 }
 function handleArrayResult(result, final, index) {
   if (result.issues.length) {
@@ -2800,7 +2835,7 @@ function handleRefineResult(result, payload, input2, inst) {
     payload.issues.push(issue(_iss));
   }
 }
-var $ZodType, toStandardResult, $ZodString, $ZodStringFormat, $ZodGUID, $ZodUUID, $ZodEmail, URL_BAD_FORMAT, URL_UNPARSEABLE, asciiTabOrNewline, $ZodURL, $ZodEmoji, $ZodNanoID, $ZodCUID, $ZodCUID2, $ZodULID, $ZodXID, $ZodKSUID, $ZodISODateTime, $ZodISODate, $ZodISOTime, $ZodISODuration, $ZodIPv4, ipv6Alphabet, $ZodIPv6, $ZodMAC, $ZodCIDRv4, $ZodCIDRv6, base64Charset, $ZodBase64, base64urlCharset, $ZodBase64URL, $ZodE164, CC_SANITIZE, $ZodCreditCard, $ZodIBAN, $ZodJWT, $ZodCustomStringFormat, $ZodNumber, $ZodNumberFormat, $ZodBoolean, $ZodBigInt, $ZodBigIntFormat, $ZodSymbol, $ZodUndefined, $ZodNull, $ZodAny, $ZodUnknown, $ZodNever, $ZodVoid, $ZodDate, $ZodArray, NO_SYMBOL_KEYS, $ZodObject, $ZodObjectJIT, $ZodUnion, $ZodXor, $ZodDiscriminatedUnion, $ZodIntersection, $ZodTuple, $ZodRecord, $ZodMap, $ZodSet, $ZodEnum, $ZodLiteral, $ZodFile, $ZodTransform, $ZodOptional, $ZodExactOptional, $ZodNullable, $ZodDefault, $ZodPrefault, $ZodNonOptional, $ZodSuccess, $ZodCatch, $ZodNaN, $ZodPipe, $ZodCodec, $ZodPreprocess, $ZodReadonly, $ZodTemplateLiteral, $ZodFunction, $ZodPromise, $ZodLazy, $ZodCustom;
+var $ZodType, toStandardResult, $ZodString, $ZodStringFormat, $ZodGUID, $ZodUUID, $ZodEmail, URL_BAD_FORMAT, URL_UNPARSEABLE, asciiTabOrNewline, $ZodURL, $ZodEmoji, $ZodNanoID, $ZodCUID, $ZodCUID2, $ZodULID, $ZodXID, $ZodKSUID, $ZodISODateTime, $ZodISODate, $ZodISOTime, $ZodISODuration, $ZodIPv4, ipv6Alphabet, $ZodIPv6, $ZodMAC, $ZodCIDRv4, $ZodCIDRv6, base64Charset, $ZodBase64, base64urlCharset, $ZodBase64URL, $ZodE164, CC_SANITIZE, $ZodCreditCard, $ZodIBAN, $ZodJWT, $ZodCustomStringFormat, $ZodNumber, $ZodNumberFormat, $ZodBoolean, $ZodBigInt, $ZodBigIntFormat, $ZodSymbol, $ZodUndefined, $ZodNull, $ZodAny, $ZodUnknown, $ZodNever, $ZodVoid, $ZodDate, arraySize, mapSize, setSize, $ZodArray, NO_SYMBOL_KEYS, $ZodObject, $ZodObjectJIT, $ZodUnion, $ZodXor, $ZodDiscriminatedUnion, $ZodIntersection, $ZodTuple, $ZodRecord, $ZodMap, $ZodSet, $ZodEnum, $ZodLiteral, $ZodFile, $ZodTransform, $ZodOptional, $ZodExactOptional, $ZodNullable, $ZodDefault, $ZodPrefault, $ZodNonOptional, $ZodSuccess, $ZodCatch, $ZodNaN, $ZodPipe, $ZodCodec, $ZodPreprocess, $ZodReadonly, $ZodTemplateLiteral, $ZodFunction, $ZodPromise, $ZodLazy, $ZodCustom;
 var init_schemas = __esm({
   "node_modules/zod/v4/core/schemas.js"() {
     init_checks();
@@ -3407,6 +3442,9 @@ var init_schemas = __esm({
         return payload;
       };
     });
+    arraySize = (input2) => Array.isArray(input2) ? input2.length : -1;
+    mapSize = (input2) => input2 instanceof Map ? input2.size : -1;
+    setSize = (input2) => input2 instanceof Set ? input2.size : -1;
     $ZodArray = /* @__PURE__ */ $constructor("$ZodArray", (inst, def) => {
       $ZodType.init(inst, def);
       const memo3 = globalConfig.memoizer;
@@ -3444,6 +3482,7 @@ var init_schemas = __esm({
         }
         return payload;
       };
+      capSize(inst, arraySize);
     });
     NO_SYMBOL_KEYS = [];
     $ZodObject = /* @__PURE__ */ $constructor("$ZodObject", (inst, def) => {
@@ -4082,6 +4121,7 @@ var init_schemas = __esm({
           return Promise.all(proms).then(() => payload);
         return payload;
       };
+      capSize(inst, mapSize);
     });
     $ZodSet = /* @__PURE__ */ $constructor("$ZodSet", (inst, def) => {
       $ZodType.init(inst, def);
@@ -4118,6 +4158,7 @@ var init_schemas = __esm({
           return Promise.all(proms).then(() => payload);
         return payload;
       };
+      capSize(inst, setSize);
     });
     $ZodEnum = /* @__PURE__ */ $constructor("$ZodEnum", (inst, def) => {
       $ZodType.init(inst, def);
@@ -13907,9 +13948,15 @@ function generateNullableCheck(doc, ctx, schema, accessor, buildsValue = true) {
   doc.write(`}`);
   return outputVar;
 }
+function generateSizeGate(doc, schema, size) {
+  for (const [max, check2] of sizeCaps(schema._zod.def.checks)) {
+    doc.write(`if (${size} > ${numericOperand(max, check2._zod.def.check)}) return INVALID;`);
+  }
+}
 function generateArrayCheck(doc, ctx, schema, accessor, buildsValue = true) {
   const def = schema._zod.def;
   doc.write(`if (!Array.isArray(${accessor})) return INVALID;`);
+  generateSizeGate(doc, schema, `${accessor}.length`);
   const outputVar = buildsValue ? newVar(ctx) : null;
   const iVar = newVar(ctx);
   const elemVar = newVar(ctx);
@@ -14309,6 +14356,7 @@ function literalPropertyKey(ctx, key) {
 function generateMapCheck(doc, ctx, schema, accessor) {
   const def = schema._zod.def;
   doc.write(`if (!(${accessor} instanceof Map)) return INVALID;`);
+  generateSizeGate(doc, schema, `${accessor}.size`);
   const outputVar = newVar(ctx);
   const kVar = newVar(ctx);
   const valVar = newVar(ctx);
@@ -14325,6 +14373,7 @@ function generateMapCheck(doc, ctx, schema, accessor) {
 function generateSetCheck(doc, ctx, schema, accessor) {
   const def = schema._zod.def;
   doc.write(`if (!(${accessor} instanceof Set)) return INVALID;`);
+  generateSizeGate(doc, schema, `${accessor}.size`);
   const outputVar = newVar(ctx);
   const valVar = newVar(ctx);
   doc.write(`const ${outputVar} = new Set();`);
@@ -20446,10 +20495,10 @@ var init_v4 = __esm({
   }
 });
 
-// node_modules/@modelcontextprotocol/core/dist/auth-CUe6YdwF.mjs
-var LATEST_PROTOCOL_VERSION, SUPPORTED_PROTOCOL_VERSIONS, RELATED_TASK_META_KEY, PROTOCOL_VERSION_META_KEY, CLIENT_INFO_META_KEY, SERVER_INFO_META_KEY, CLIENT_CAPABILITIES_META_KEY, SUBSCRIPTION_ID_META_KEY, LOG_LEVEL_META_KEY, JSONRPC_VERSION, JSONValueSchema, JSONObjectSchema, JSONArraySchema, ProgressTokenSchema, CursorSchema, TaskMetadataSchema, RelatedTaskMetadataSchema, RequestMetaSchema, BaseRequestParamsSchema, TaskAugmentedRequestParamsSchema, RequestSchema, NotificationsParamsSchema, NotificationSchema, ResultMetaObjectSchema, ResultSchema, RequestIdSchema, JSONRPCRequestSchema, JSONRPCNotificationSchema, JSONRPCResultResponseSchema, JSONRPCErrorResponseSchema, JSONRPCMessageSchema, JSONRPCResponseSchema, EmptyResultSchema, CancelledNotificationParamsSchema, CancelledNotificationSchema, IconSchema, IconsSchema, BaseMetadataSchema, ImplementationSchema, FormElicitationCapabilitySchema, ElicitationCapabilitySchema, ClientTasksCapabilitySchema, ServerTasksCapabilitySchema, ClientCapabilitiesSchema, InitializeRequestParamsSchema, InitializeRequestSchema, ServerCapabilitiesSchema, InitializeResultSchema, InitializedNotificationSchema, DiscoverRequestSchema, DiscoverResultSchema, PingRequestSchema, ProgressSchema, ProgressNotificationParamsSchema, ProgressNotificationSchema, PaginatedRequestParamsSchema, PaginatedRequestSchema, PaginatedResultSchema, ResourceContentsSchema, TextResourceContentsSchema, Base64Schema, BlobResourceContentsSchema, RoleSchema, AnnotationsSchema, ResourceSchema, ResourceTemplateSchema, ListResourcesRequestSchema, ListResourcesResultSchema, ListResourceTemplatesRequestSchema, ListResourceTemplatesResultSchema, ResourceRequestParamsSchema, ReadResourceRequestParamsSchema, ReadResourceRequestSchema, ReadResourceResultSchema, ResourceListChangedNotificationSchema, SubscribeRequestParamsSchema, SubscribeRequestSchema, UnsubscribeRequestParamsSchema, UnsubscribeRequestSchema, SubscriptionFilterSchema, SubscriptionsListenRequestParamsSchema, SubscriptionsListenRequestSchema, SubscriptionsAcknowledgedNotificationParamsSchema, SubscriptionsAcknowledgedNotificationSchema, SubscriptionsListenResultMetaSchema, SubscriptionsListenResultSchema, ResourceUpdatedNotificationParamsSchema, ResourceUpdatedNotificationSchema, PromptArgumentSchema, PromptSchema, ListPromptsRequestSchema, ListPromptsResultSchema, GetPromptRequestParamsSchema, GetPromptRequestSchema, TextContentSchema, ImageContentSchema, AudioContentSchema, ToolUseContentSchema, EmbeddedResourceSchema, ResourceLinkSchema, ContentBlockSchema, PromptMessageSchema, GetPromptResultSchema, PromptListChangedNotificationSchema, ToolAnnotationsSchema, ToolExecutionSchema, ToolSchema, ListToolsRequestSchema, ListToolsResultSchema, CallToolResultSchema, CompatibilityCallToolResultSchema, CallToolRequestParamsSchema, CallToolRequestSchema, ToolListChangedNotificationSchema, ListChangedOptionsBaseSchema, LoggingLevelSchema, SetLevelRequestParamsSchema, SetLevelRequestSchema, LoggingMessageNotificationParamsSchema, LoggingMessageNotificationSchema, ModelHintSchema, ModelPreferencesSchema, ToolChoiceSchema, ToolResultContentSchema, SamplingContentSchema, SamplingMessageContentBlockSchema, SamplingMessageSchema, CreateMessageRequestParamsSchema, CreateMessageRequestSchema, CreateMessageResultSchema, CreateMessageResultWithToolsSchema, BooleanSchemaSchema, StringSchemaSchema, NumberSchemaSchema, UntitledSingleSelectEnumSchemaSchema, TitledSingleSelectEnumSchemaSchema, LegacyTitledEnumSchemaSchema, SingleSelectEnumSchemaSchema, UntitledMultiSelectEnumSchemaSchema, TitledMultiSelectEnumSchemaSchema, MultiSelectEnumSchemaSchema, EnumSchemaSchema, PrimitiveSchemaDefinitionSchema, ElicitRequestFormParamsSchema, ElicitRequestURLParamsSchema, ElicitRequestParamsSchema, ElicitRequestSchema, ElicitationCompleteNotificationParamsSchema, ElicitationCompleteNotificationSchema, ElicitResultSchema, ResourceTemplateReferenceSchema, PromptReferenceSchema, CompleteRequestParamsSchema, CompleteRequestSchema, CompleteResultSchema, RootSchema, ListRootsRequestSchema, ListRootsResultSchema, RootsListChangedNotificationSchema, TaskCreationParamsSchema, TaskStatusSchema, TaskSchema, CreateTaskResultSchema, TaskStatusNotificationParamsSchema, TaskStatusNotificationSchema, GetTaskRequestSchema, GetTaskResultSchema, GetTaskPayloadRequestSchema, GetTaskPayloadResultSchema, ListTasksRequestSchema, ListTasksResultSchema, CancelTaskRequestSchema, CancelTaskResultSchema, ClientRequestSchema, ClientNotificationSchema, ClientResultSchema, ServerRequestSchema, ServerNotificationSchema, ServerResultSchema, SafeUrlSchema, OAuthProtectedResourceMetadataSchema, OAuthMetadataSchema, OpenIdProviderMetadataSchema, OpenIdProviderDiscoveryMetadataSchema, OAuthTokensSchema, IdJagTokenExchangeResponseSchema, OAuthErrorResponseSchema, OptionalSafeUrlSchema, OAuthClientMetadataSchema, OAuthClientInformationSchema, OAuthClientInformationFullSchema, OAuthClientRegistrationErrorSchema, OAuthTokenRevocationRequestSchema;
-var init_auth_CUe6YdwF = __esm({
-  "node_modules/@modelcontextprotocol/core/dist/auth-CUe6YdwF.mjs"() {
+// node_modules/@modelcontextprotocol/core/dist/schemas-DscsoNZN.mjs
+var LATEST_PROTOCOL_VERSION, SUPPORTED_PROTOCOL_VERSIONS, RELATED_TASK_META_KEY, PROTOCOL_VERSION_META_KEY, CLIENT_INFO_META_KEY, SERVER_INFO_META_KEY, CLIENT_CAPABILITIES_META_KEY, SUBSCRIPTION_ID_META_KEY, LOG_LEVEL_META_KEY, JSONRPC_VERSION, JSONValueSchema, JSONObjectSchema, JSONArraySchema, ProgressTokenSchema, CursorSchema, TaskMetadataSchema, RelatedTaskMetadataSchema, RequestMetaSchema, BaseRequestParamsSchema, TaskAugmentedRequestParamsSchema, RequestSchema, NotificationsParamsSchema, NotificationSchema, ResultMetaObjectSchema, ResultSchema, RequestIdSchema, JSONRPCRequestSchema, JSONRPCNotificationSchema, JSONRPCResultResponseSchema, JSONRPCErrorResponseSchema, JSONRPCMessageSchema, JSONRPCResponseSchema, EmptyResultSchema, CancelledNotificationParamsSchema, CancelledNotificationSchema, IconSchema, IconsSchema, BaseMetadataSchema, ImplementationSchema, FormElicitationCapabilitySchema, ElicitationCapabilitySchema, ClientTasksCapabilitySchema, ServerTasksCapabilitySchema, ClientCapabilitiesSchema, InitializeRequestParamsSchema, InitializeRequestSchema, ServerCapabilitiesSchema, InitializeResultSchema, InitializedNotificationSchema, DiscoverRequestSchema, DiscoverResultSchema, PingRequestSchema, ProgressSchema, ProgressNotificationParamsSchema, ProgressNotificationSchema, PaginatedRequestParamsSchema, PaginatedRequestSchema, PaginatedResultSchema, ResourceContentsSchema, TextResourceContentsSchema, Base64Schema, BlobResourceContentsSchema, RoleSchema, AnnotationsSchema, ResourceSchema, ResourceTemplateSchema, ListResourcesRequestSchema, ListResourcesResultSchema, ListResourceTemplatesRequestSchema, ListResourceTemplatesResultSchema, ResourceRequestParamsSchema, ReadResourceRequestParamsSchema, ReadResourceRequestSchema, ReadResourceResultSchema, ResourceListChangedNotificationSchema, SubscribeRequestParamsSchema, SubscribeRequestSchema, UnsubscribeRequestParamsSchema, UnsubscribeRequestSchema, SubscriptionFilterSchema, SubscriptionsListenRequestParamsSchema, SubscriptionsListenRequestSchema, SubscriptionsAcknowledgedNotificationParamsSchema, SubscriptionsAcknowledgedNotificationSchema, SubscriptionsListenResultMetaSchema, SubscriptionsListenResultSchema, ResourceUpdatedNotificationParamsSchema, ResourceUpdatedNotificationSchema, PromptArgumentSchema, PromptSchema, ListPromptsRequestSchema, ListPromptsResultSchema, GetPromptRequestParamsSchema, GetPromptRequestSchema, TextContentSchema, ImageContentSchema, AudioContentSchema, ToolUseContentSchema, EmbeddedResourceSchema, ResourceLinkSchema, ContentBlockSchema, PromptMessageSchema, GetPromptResultSchema, PromptListChangedNotificationSchema, ToolAnnotationsSchema, ToolExecutionSchema, ToolSchema, ListToolsRequestSchema, ListToolsResultSchema, CallToolResultSchema, CompatibilityCallToolResultSchema, CallToolRequestParamsSchema, CallToolRequestSchema, ToolListChangedNotificationSchema, ListChangedOptionsBaseSchema, LoggingLevelSchema, SetLevelRequestParamsSchema, SetLevelRequestSchema, LoggingMessageNotificationParamsSchema, LoggingMessageNotificationSchema, ModelHintSchema, ModelPreferencesSchema, ToolChoiceSchema, ToolResultContentSchema, SamplingContentSchema, SamplingMessageContentBlockSchema, SamplingMessageSchema, CreateMessageRequestParamsSchema, CreateMessageRequestSchema, CreateMessageResultSchema, CreateMessageResultWithToolsSchema, BooleanSchemaSchema, StringSchemaSchema, NumberSchemaSchema, UntitledSingleSelectEnumSchemaSchema, TitledSingleSelectEnumSchemaSchema, LegacyTitledEnumSchemaSchema, SingleSelectEnumSchemaSchema, UntitledMultiSelectEnumSchemaSchema, TitledMultiSelectEnumSchemaSchema, MultiSelectEnumSchemaSchema, EnumSchemaSchema, PrimitiveSchemaDefinitionSchema, ElicitRequestFormParamsSchema, ElicitRequestURLParamsSchema, ElicitRequestParamsSchema, ElicitRequestSchema, ElicitationCompleteNotificationParamsSchema, ElicitationCompleteNotificationSchema, ElicitResultSchema, ResourceTemplateReferenceSchema, PromptReferenceSchema, CompleteRequestParamsSchema, CompleteRequestSchema, CompleteResultSchema, RootSchema, ListRootsRequestSchema, ListRootsResultSchema, RootsListChangedNotificationSchema, TaskCreationParamsSchema, TaskStatusSchema, TaskSchema, CreateTaskResultSchema, TaskStatusNotificationParamsSchema, TaskStatusNotificationSchema, GetTaskRequestSchema, GetTaskResultSchema, GetTaskPayloadRequestSchema, GetTaskPayloadResultSchema, ListTasksRequestSchema, ListTasksResultSchema, CancelTaskRequestSchema, CancelTaskResultSchema, ClientRequestSchema, ClientNotificationSchema, ClientResultSchema, ServerRequestSchema, ServerNotificationSchema, ServerResultSchema;
+var init_schemas_DscsoNZN = __esm({
+  "node_modules/@modelcontextprotocol/core/dist/schemas-DscsoNZN.mjs"() {
     init_v4();
     LATEST_PROTOCOL_VERSION = "2025-11-25";
     SUPPORTED_PROTOCOL_VERSIONS = [
@@ -21238,6 +21287,14 @@ var init_auth_CUe6YdwF = __esm({
       ListToolsResultSchema,
       SubscriptionsListenResultSchema
     ]);
+  }
+});
+
+// node_modules/@modelcontextprotocol/core/dist/auth-UMQCo-ad.mjs
+var SafeUrlSchema, OAuthProtectedResourceMetadataSchema, OAuthMetadataSchema, OpenIdProviderMetadataSchema, OpenIdProviderDiscoveryMetadataSchema, OAuthTokensSchema, IdJagTokenExchangeResponseSchema, OAuthErrorResponseSchema, OptionalSafeUrlSchema, OAuthClientMetadataSchema, OAuthClientInformationSchema, OAuthClientInformationFullSchema, OAuthClientRegistrationErrorSchema, OAuthTokenRevocationRequestSchema;
+var init_auth_UMQCo_ad = __esm({
+  "node_modules/@modelcontextprotocol/core/dist/auth-UMQCo-ad.mjs"() {
+    init_v4();
     SafeUrlSchema = url().superRefine((val, ctx) => {
       if (!URL.canParse(val)) {
         ctx.addIssue({
@@ -21287,7 +21344,8 @@ var init_auth_CUe6YdwF = __esm({
       introspection_endpoint_auth_signing_alg_values_supported: array(string2()).optional(),
       code_challenge_methods_supported: array(string2()).optional(),
       client_id_metadata_document_supported: boolean2().optional(),
-      authorization_response_iss_parameter_supported: boolean2().optional().catch(void 0)
+      authorization_response_iss_parameter_supported: boolean2().optional().catch(void 0),
+      dpop_signing_alg_values_supported: array(string2()).optional()
     });
     OpenIdProviderMetadataSchema = looseObject({
       issuer: string2(),
@@ -21338,7 +21396,8 @@ var init_auth_CUe6YdwF = __esm({
       token_type: string2(),
       expires_in: coerce_exports.number().optional(),
       scope: string2().optional(),
-      refresh_token: string2().optional()
+      refresh_token: string2().optional(),
+      issuer: string2().optional().catch(void 0)
     }).strip();
     IdJagTokenExchangeResponseSchema = object({
       issued_token_type: literal("urn:ietf:params:oauth:token-type:id-jag"),
@@ -21376,7 +21435,8 @@ var init_auth_CUe6YdwF = __esm({
       client_id: string2(),
       client_secret: string2().optional(),
       client_id_issued_at: number2().optional(),
-      client_secret_expires_at: number2().optional()
+      client_secret_expires_at: number2().optional(),
+      issuer: string2().optional().catch(void 0)
     }).strip();
     OAuthClientInformationFullSchema = OAuthClientMetadataSchema.merge(OAuthClientInformationSchema);
     OAuthClientRegistrationErrorSchema = object({
@@ -21393,11 +21453,12 @@ var init_auth_CUe6YdwF = __esm({
 // node_modules/@modelcontextprotocol/core/dist/internal.mjs
 var init_internal = __esm({
   "node_modules/@modelcontextprotocol/core/dist/internal.mjs"() {
-    init_auth_CUe6YdwF();
+    init_schemas_DscsoNZN();
+    init_auth_UMQCo_ad();
   }
 });
 
-// node_modules/@modelcontextprotocol/server/dist/src-CX2iR2pK.mjs
+// node_modules/@modelcontextprotocol/server/dist/src-DdvbAHrR.mjs
 function stampErrorBrands(instance, ctor) {
   const brands = /* @__PURE__ */ new Set();
   let current = ctor;
@@ -23377,7 +23438,8 @@ function build() {
     ListResourceTemplatesResultResponseSchema: wireResultResponse(ListResourceTemplatesResultSchema$1),
     ReadResourceResultResponseSchema: wireResultResponse(union([ReadResourceResultSchema$1, InputRequiredResultSchema])),
     CompleteResultResponseSchema: wireResultResponse(CompleteResultSchema$1),
-    DiscoverResultResponseSchema: wireResultResponse(DiscoverResultSchema$1)
+    DiscoverResultResponseSchema: wireResultResponse(DiscoverResultSchema$1),
+    SubscriptionsListenResultResponseSchema: wireResultResponse(SubscriptionsListenResultSchema$1)
   };
 }
 function buildSchemas2026() {
@@ -23596,6 +23658,9 @@ function isSpecRequestMethod(method) {
 function isSpecNotificationMethod(method) {
   return ALL_CODECS.some((codec2) => codec2.hasNotificationMethod(method));
 }
+function isExtensionReusedRequestMethod(method) {
+  return method === "tasks/get" || method === "tasks/cancel";
+}
 function assertCompleteRequestPrompt(request) {
   if (request.params.ref.type !== "ref/prompt") throw new TypeError(`Expected CompleteRequestPrompt, but got ${request.params.ref.type}`);
 }
@@ -23605,6 +23670,7 @@ function assertCompleteRequestResourceTemplate(request) {
 function scanXMcpHeaderDeclarations(inputSchema) {
   const declarations = [];
   const seenLower = /* @__PURE__ */ new Map();
+  let numberFault;
   const visit2 = (node2, path3, reachable) => {
     if (node2 === null || typeof node2 !== "object") return void 0;
     const schema = node2;
@@ -23614,7 +23680,11 @@ function scanXMcpHeaderDeclarations(inputSchema) {
       if (typeof raw !== "string" || raw.length === 0) return `${pathName(path3)}: x-mcp-header MUST be a non-empty string`;
       if (!RFC9110_TOKEN.test(raw)) return `${pathName(path3)}: x-mcp-header '${raw}' is not a valid RFC 9110 token (no spaces, control characters or HTTP delimiters)`;
       const type = typeof schema.type === "string" ? schema.type : void 0;
-      if (type === void 0 || !PERMITTED_X_MCP_HEADER_TYPES.has(type)) return `${pathName(path3)}: x-mcp-header is only permitted on primitive-typed properties (string, integer, boolean); got ${type ?? "<none>"}`;
+      if (type === void 0 || !PERMITTED_X_MCP_HEADER_TYPES.has(type)) {
+        const fault$1 = `${pathName(path3)}: x-mcp-header is only permitted on primitive-typed properties (string, integer, boolean); got ${type ?? "<none>"}`;
+        if (type !== "number") return fault$1;
+        numberFault ??= fault$1;
+      }
       const lower = raw.toLowerCase();
       const prior = seenLower.get(lower);
       if (prior !== void 0) return `x-mcp-header '${raw}' is not case-insensitively unique (also declared as '${prior}')`;
@@ -23641,12 +23711,17 @@ function scanXMcpHeaderDeclarations(inputSchema) {
     }
   };
   const fault = visit2(inputSchema, [], true);
-  return fault === void 0 ? {
+  if (fault !== void 0) return {
+    valid: false,
+    reason: numberFault ?? fault
+  };
+  return numberFault === void 0 ? {
     valid: true,
     declarations
   } : {
     valid: false,
-    reason: fault
+    reason: numberFault,
+    declarations
   };
 }
 function pathName(path3) {
@@ -23693,15 +23768,17 @@ function standardSchemaToJsonSchema(schema, io = "input") {
     ...result
   };
 }
-function isProvablyObjectShapedRoot(schema) {
+function isProvablyObjectShapedRoot(schema, root = schema) {
   if ("properties" in schema || "patternProperties" in schema || "additionalProperties" in schema || "required" in schema) return true;
+  const ref = typeof schema.$ref === "string" && LOCAL_DEFINITION_REF.exec(schema.$ref);
+  if (ref && root[ref[1]]?.[ref[2]]?.type === "object") return true;
   for (const key of [
     "oneOf",
     "anyOf",
     "allOf"
   ]) {
     const members2 = schema[key];
-    if (Array.isArray(members2) && members2.length > 0) return members2.every((m) => m !== null && typeof m === "object" && (m.type === "object" || isProvablyObjectShapedRoot(m)));
+    if (Array.isArray(members2) && members2.length > 0) return members2.every((m) => m !== null && typeof m === "object" && (m.type === "object" || isProvablyObjectShapedRoot(m, "$id" in m ? {} : root)));
   }
   return false;
 }
@@ -24006,7 +24083,8 @@ function manualInputRequiredValue(decoded) {
   return {
     resultType: "input_required",
     inputRequests: decoded.inputRequests,
-    ...decoded.requestState !== void 0 && { requestState: decoded.requestState }
+    ...decoded.requestState !== void 0 && { requestState: decoded.requestState },
+    ...decoded._meta !== void 0 && { _meta: decoded._meta }
   };
 }
 function deserializeMessage(line) {
@@ -24076,11 +24154,11 @@ function normalizeRawShapeSchema(schema) {
   if (!isStandardSchema(schema)) throw new TypeError("inputSchema/outputSchema/argsSchema must be a Standard Schema (e.g. z.object({...})) or a raw Zod shape ({ field: z.string() }).");
   return schema;
 }
-var BRANDS, OAuthError, SdkErrorCode, SdkError, SdkHttpError, FIRST_MODERN_PROTOCOL_VERSION, TOOL_RESULT_FOREIGN_FAMILY_KEYS, memo$1, REF_REWRITE_DATA_POSITION_KEYS, REF_REWRITE_NAME_MAP_KEYS, requestMethodKeys$1, notificationMethodKeys$1, resultMethodKeys, maps$1, rev2025RequestMethods, rev2025NotificationMethods, NOT_IN_ERA$1, rev2025Codec, memo2, CACHEABLE_RESULT_METHODS, RESULT_CACHE_HINT_FALLBACK, ProtocolErrorCode, ProtocolError, ResourceNotFoundError, UrlElicitationRequiredError, UnsupportedProtocolVersionError, MissingRequiredClientCapabilityError, DEFAULT_CACHE_TTL_MS, DEFAULT_CACHE_SCOPE, EXTENDED_RESULT_TYPE_METHODS, INPUT_REQUEST_METHODS_2026, maps, requestMethodKeys, notificationMethodKeys, rev2026RequestMethods, rev2026NotificationMethods, NOT_IN_ERA, REQUIRED_ENVELOPE_KEYS, rev2026Codec, wireResultSchemasMemo, MODERN_WIRE_REVISION, ALL_CODECS, schemas_exports3, isJSONRPCRequest, isJSONRPCNotification, isJSONRPCResultResponse, isJSONRPCErrorResponse, isInputRequiredResult, X_MCP_HEADER_KEY, RFC9110_TOKEN, PERMITTED_X_MCP_HEADER_TYPES, NON_REACHABLE_SUBSCHEMA_KEYWORDS, OBJECT_VALUED_SUBSCHEMA_KEYWORDS, HEADER_MISMATCH_ERROR_CODE, INBOUND_VALIDATION_LADDER, LADDER_ERROR_HTTP_STATUS, warnedZodFallback, JSON_SCHEMA_CONVERSION_TARGET, DATETIME_FRACTION_DIGITS, ANNOTATION_ONLY_JSON_SCHEMA_KEYWORDS, ROOT_KEYS, PROPERTY_KEYS_BY_TYPE, SUPPORTED_STRING_FORMATS, inputRequired, REQUEST_STATE_ONLY_LEG_PACING_MS, SPEC_SCHEMA_KEYS, authSchemas, _specTypeSchemas, _isSpecType, specTypeSchemas, isSpecType, DEFAULT_REQUEST_TIMEOUT_MSEC, RESERVED_ENVELOPE_META_KEYS, RETRY_PARAMS_KEYS, NO_REQUEST_STATE, writeNegotiatedProtocolVersion, Protocol, require_content_type, import_content_type, STDIO_DEFAULT_MAX_BUFFER_SIZE, ReadBuffer, TOOL_NAME_REGEX;
-var init_src_CX2iR2pK = __esm({
-  "node_modules/@modelcontextprotocol/server/dist/src-CX2iR2pK.mjs"() {
-    init_chunk_Br0eD_fh();
-    init_dialects_DoSzNhcb();
+var BRANDS, OAuthError, SdkErrorCode, SdkError, SdkHttpError, FIRST_MODERN_PROTOCOL_VERSION, SUPPORTED_MODERN_PROTOCOL_VERSIONS, TOOL_RESULT_FOREIGN_FAMILY_KEYS, memo$1, REF_REWRITE_DATA_POSITION_KEYS, REF_REWRITE_NAME_MAP_KEYS, requestMethodKeys$1, notificationMethodKeys$1, resultMethodKeys, maps$1, rev2025RequestMethods, rev2025NotificationMethods, NOT_IN_ERA$1, rev2025Codec, memo2, CACHEABLE_RESULT_METHODS, RESULT_CACHE_HINT_FALLBACK, ProtocolErrorCode, ProtocolError, ResourceNotFoundError, UrlElicitationRequiredError, UnsupportedProtocolVersionError, MissingRequiredClientCapabilityError, DEFAULT_CACHE_TTL_MS, DEFAULT_CACHE_SCOPE, EXTENDED_RESULT_TYPE_METHODS, INPUT_REQUEST_METHODS_2026, maps, requestMethodKeys, notificationMethodKeys, rev2026RequestMethods, rev2026NotificationMethods, NOT_IN_ERA, REQUIRED_ENVELOPE_KEYS, rev2026Codec, wireResultSchemasMemo, MODERN_WIRE_REVISION, ALL_CODECS, schemas_exports3, isJSONRPCRequest, isJSONRPCNotification, isJSONRPCResultResponse, isJSONRPCErrorResponse, isInputRequiredResult, X_MCP_HEADER_KEY, RFC9110_TOKEN, PERMITTED_X_MCP_HEADER_TYPES, NON_REACHABLE_SUBSCHEMA_KEYWORDS, OBJECT_VALUED_SUBSCHEMA_KEYWORDS, HEADER_MISMATCH_ERROR_CODE, INBOUND_VALIDATION_LADDER, LADDER_ERROR_HTTP_STATUS, warnedZodFallback, JSON_SCHEMA_CONVERSION_TARGET, LOCAL_DEFINITION_REF, DATETIME_FRACTION_DIGITS, ANNOTATION_ONLY_JSON_SCHEMA_KEYWORDS, ROOT_KEYS, PROPERTY_KEYS_BY_TYPE, SUPPORTED_STRING_FORMATS, inputRequired, REQUEST_STATE_ONLY_LEG_PACING_MS, SPEC_SCHEMA_KEYS, authSchemas, _specTypeSchemas, _isSpecType, specTypeSchemas, isSpecType, DEFAULT_REQUEST_TIMEOUT_MSEC, RESERVED_ENVELOPE_META_KEYS, RETRY_PARAMS_KEYS, NO_REQUEST_STATE, writeNegotiatedProtocolVersion, Protocol, require_content_type, import_content_type, STDIO_DEFAULT_MAX_BUFFER_SIZE, ReadBuffer, TOOL_NAME_REGEX;
+var init_src_DdvbAHrR = __esm({
+  "node_modules/@modelcontextprotocol/server/dist/src-DdvbAHrR.mjs"() {
+    init_chunk_vYduTEsO();
+    init_dialects_CDpMbily();
     init_internal();
     init_v4();
     BRANDS = /* @__PURE__ */ Symbol.for("mcp.sdk.errorBrands");
@@ -24171,8 +24249,18 @@ var init_src_CX2iR2pK = __esm({
         if (typeof this !== "function") throw new TypeError("isInstance must be called on the class (e.g. `SdkError.isInstance(value)`); for callbacks use `v => SdkError.isInstance(v)`");
         return brandedHasInstance(this, value);
       }
-      constructor(code, message, data) {
-        super(message);
+      /**
+      * @param code - Stable string code identifying the failure ({@linkcode SdkErrorCode}).
+      * @param message - Human-readable description.
+      * @param data - Optional structured payload (for example the HTTP status carried by
+      * {@linkcode SdkHttpError}). Opaque to the SDK: a `cause` key inside `data` is not
+      * promoted to `Error.cause`.
+      * @param options - Standard `ErrorOptions`, forwarded to `Error`. Pass the underlying
+      * failure as `{ cause }` so it is reachable through the `Error.cause` chain that
+      * loggers and error trackers walk.
+      */
+      constructor(code, message, data, options) {
+        super(message, options);
         this.code = code;
         this.data = data;
         this.name = "SdkError";
@@ -24183,8 +24271,11 @@ var init_src_CX2iR2pK = __esm({
       static {
         Object.defineProperty(this, "mcpBrand", { value: "mcp.SdkHttpError" });
       }
-      constructor(code, message, data) {
-        super(code, message, data);
+      /**
+      * @param options - Standard `ErrorOptions`, forwarded to `Error` (see {@linkcode SdkError}).
+      */
+      constructor(code, message, data, options) {
+        super(code, message, data, options);
         this.name = "SdkHttpError";
       }
       get status() {
@@ -24195,6 +24286,7 @@ var init_src_CX2iR2pK = __esm({
       }
     };
     FIRST_MODERN_PROTOCOL_VERSION = "2026-07-28";
+    SUPPORTED_MODERN_PROTOCOL_VERSIONS = [FIRST_MODERN_PROTOCOL_VERSION];
     TOOL_RESULT_FOREIGN_FAMILY_KEYS = [
       "task",
       "inputRequests",
@@ -24566,6 +24658,8 @@ var init_src_CX2iR2pK = __esm({
           const rawInputRequests = raw["inputRequests"];
           const inputRequests = isPlainObject$4(rawInputRequests) ? rawInputRequests : {};
           const requestState = raw["requestState"];
+          const metaParse = raw["_meta"] === void 0 ? void 0 : buildSchemas2026().ResultMetaSchema.safeParse(raw["_meta"]);
+          const meta3 = metaParse?.success ? metaParse.data : void 0;
           if (Object.keys(inputRequests).length === 0 && typeof requestState !== "string") return {
             kind: "invalid",
             error: new SdkError(SdkErrorCode.InvalidResult, `Invalid result for ${method}: input_required carries neither inputRequests nor requestState (every input_required result must include at least one of the two)`, {
@@ -24576,7 +24670,8 @@ var init_src_CX2iR2pK = __esm({
           return {
             kind: "input_required",
             inputRequests,
-            ...typeof requestState === "string" && { requestState }
+            ...typeof requestState === "string" && { requestState },
+            ...meta3 !== void 0 && { _meta: meta3 }
           };
         }
         if (rawResultType !== "complete") return {
@@ -24792,8 +24887,7 @@ var init_src_CX2iR2pK = __esm({
     PERMITTED_X_MCP_HEADER_TYPES = /* @__PURE__ */ new Set([
       "string",
       "integer",
-      "boolean",
-      "number"
+      "boolean"
     ]);
     NON_REACHABLE_SUBSCHEMA_KEYWORDS = [
       "items",
@@ -24881,7 +24975,7 @@ var init_src_CX2iR2pK = __esm({
         evaluatedAt: "pre-dispatch",
         codes: [HEADER_MISMATCH_ERROR_CODE],
         conformance: ["http-header-validation"],
-        rationale: "SEP-2243 standard `Mcp-Method` / `Mcp-Name` headers \u2014 presence, sentinel decoding, and `Mcp-Name` \u2194 body cross-check \u2014 are validated by the HTTP entry on a modern-classified request after the supported-revision gate and before dispatch. The classifier\u2019s own header-mismatch cells (protocol-version, `Mcp-Method` mismatch) stay on the edge `era-classification` rung; this rung carries the entry-layer presence/`Mcp-Name` half. Evaluated before the capability gate, the factory call, and the `Mcp-Param-*` rung so a request that fails several rungs is answered by the standard-header rung first. The documented order (after method-registry 5 and request-params 6) is NOT the observed precedence: serveModern evaluates this rung immediately after the supported-revision gate, so a request that also fails a dispatch rung is answered here before the dispatch rungs (5\u20136) are consulted."
+        rationale: "SEP-2243 standard `MCP-Protocol-Version` / `Mcp-Method` / `Mcp-Name` headers \u2014 presence, sentinel decoding, and `Mcp-Name` \u2194 body cross-check \u2014 are validated by the HTTP entry on a modern-classified request after the supported-revision gate and before dispatch. The spec requires `MCP-Protocol-Version` and `Mcp-Method` on every modern *request* POST (`Mcp-Name` only for the methods that mirror `params.name` / `params.uri` / `params.taskId`, see `MCP_NAME_HEADER_SOURCE`) and names them in that order, so a request missing several is answered by the earliest. Notification POSTs are exempt: the presence half runs on requests only, so a modern-enveloped notification is dispatched even with no standard headers at all. The classifier\u2019s own header-mismatch cells (protocol-version, `Mcp-Method` mismatch) stay on the edge `era-classification` rung; this rung carries the entry-layer presence/`Mcp-Name` half \u2014 including the missing `MCP-Protocol-Version` cell, which cannot live on the edge rung without breaking body-primary classification. Evaluated before the capability gate, the factory call, and the `Mcp-Param-*` rung so a request that fails several rungs is answered by the standard-header rung first. The documented order (after method-registry 5 and request-params 6) is NOT the observed precedence: serveModern evaluates this rung immediately after the supported-revision gate, so a request that also fails a dispatch rung is answered here before the dispatch rungs (5\u20136) are consulted."
       },
       {
         rung: "client-capabilities",
@@ -24910,6 +25004,7 @@ var init_src_CX2iR2pK = __esm({
     };
     warnedZodFallback = false;
     JSON_SCHEMA_CONVERSION_TARGET = "draft-2020-12";
+    LOCAL_DEFINITION_REF = /^#\/(\$defs|definitions)\/([^/~%]+)$/;
     DATETIME_FRACTION_DIGITS = /\\\.\\d\{(\d+)\}/;
     ANNOTATION_ONLY_JSON_SCHEMA_KEYWORDS = /* @__PURE__ */ new Set([
       "$comment",
@@ -25161,6 +25256,8 @@ var init_src_CX2iR2pK = __esm({
       _transport;
       _requestMessageId = 0;
       _requestHandlers = /* @__PURE__ */ new Map();
+      /** Methods registered with an explicit schema; the era gate in `_onrequest` reads it for the Tasks extension names. */
+      _customSchemaRequestMethods = /* @__PURE__ */ new Set();
       _requestHandlerAbortControllers = /* @__PURE__ */ new Map();
       _notificationHandlers = /* @__PURE__ */ new Map();
       _responseHandlers = /* @__PURE__ */ new Map();
@@ -25297,7 +25394,7 @@ var init_src_CX2iR2pK = __esm({
         return this._requestHandlers.get(method);
       }
       async _oncancel(notification) {
-        if (!notification.params.requestId) return;
+        if (notification.params.requestId === void 0) return;
         this._requestHandlerAbortControllers.get(notification.params.requestId)?.abort(notification.params.reason);
       }
       _setupTimeout(messageId, timeout, maxTotalTimeout, onTimeout, resetTimeoutOnProgress = false) {
@@ -25444,7 +25541,7 @@ var init_src_CX2iR2pK = __esm({
             return;
           }
         }
-        if (isSpecRequestMethod(request.method) && !codec2.hasRequestMethod(request.method)) {
+        if (isSpecRequestMethod(request.method) && !codec2.hasRequestMethod(request.method) && !(isExtensionReusedRequestMethod(request.method) && this._customSchemaRequestMethods.has(request.method))) {
           sendErrorResponse(ProtocolErrorCode.MethodNotFound, "Method not found");
           return;
         }
@@ -25577,8 +25674,11 @@ var init_src_CX2iR2pK = __esm({
       }
       request(request, schemaOrOptions, maybeOptions) {
         const codec2 = this._resolveOutboundCodec(request.method);
+        if (isStandardSchema(schemaOrOptions)) {
+          if (!isExtensionReusedRequestMethod(request.method)) this._assertOutboundRequestInEra(codec2, request.method);
+          return this._requestWithSchemaViaCodec(codec2, request, schemaOrOptions, maybeOptions);
+        }
         this._assertOutboundRequestInEra(codec2, request.method);
-        if (isStandardSchema(schemaOrOptions)) return this._requestWithSchemaViaCodec(codec2, request, schemaOrOptions, maybeOptions);
         const validate2 = codecResultValidator(codec2, request.method);
         if (validate2 === void 0) throw new TypeError(`'${request.method}' is not a spec method; pass a result schema as the second argument to request().`);
         return this._requestWithSchemaViaCodec(codec2, request, validate2, schemaOrOptions);
@@ -25696,19 +25796,20 @@ var init_src_CX2iR2pK = __esm({
           const cancel = (reason) => {
             if (responseReceived) return;
             this._progressHandlers.delete(messageId);
-            if (requestAbort === void 0) this._transport?.send(this._envelopeOutbound({
-              jsonrpc: "2.0",
-              method: "notifications/cancelled",
-              params: {
-                requestId: messageId,
-                reason: String(reason)
-              }
-            }), {
-              relatedRequestId,
-              resumptionToken,
-              onresumptiontoken
-            }).catch((error62) => this._onerror(/* @__PURE__ */ new Error(`Failed to send cancellation: ${error62}`)));
-            else requestAbort.abort();
+            if (requestAbort === void 0) {
+              if (request.method !== "initialize") this._transport?.send(this._envelopeOutbound({
+                jsonrpc: "2.0",
+                method: "notifications/cancelled",
+                params: {
+                  requestId: messageId,
+                  reason: String(reason)
+                }
+              }), {
+                relatedRequestId,
+                resumptionToken,
+                onresumptiontoken
+              }).catch((error62) => this._onerror(/* @__PURE__ */ new Error(`Failed to send cancellation: ${error62}`)));
+            } else requestAbort.abort();
             reject(reason instanceof SdkError ? reason : new SdkError(SdkErrorCode.RequestTimeout, String(reason)));
           };
           this._responseHandlers.set(messageId, (response) => {
@@ -25770,7 +25871,7 @@ var init_src_CX2iR2pK = __esm({
       * Emits a notification, which is a one-way message that does not expect a response.
       */
       async notification(notification, options) {
-        return this._notificationViaCodec(this._resolveOutboundCodec(notification.method), notification, options);
+        return await this._notificationViaCodec(this._resolveOutboundCodec(notification.method), notification, options);
       }
       /**
       * The notification funnel proper, keyed by the resolved era codec —
@@ -25788,7 +25889,7 @@ var init_src_CX2iR2pK = __esm({
           jsonrpc: "2.0",
           ...notification
         });
-        if ((this._options?.debouncedNotificationMethods ?? []).includes(notification.method) && !notification.params && !options?.relatedRequestId) {
+        if ((this._options?.debouncedNotificationMethods ?? []).includes(notification.method) && !notification.params && options?.relatedRequestId === void 0) {
           if (this._pendingDebouncedNotifications.has(notification.method)) return;
           this._pendingDebouncedNotifications.add(notification.method);
           Promise.resolve().then(() => {
@@ -25821,6 +25922,8 @@ var init_src_CX2iR2pK = __esm({
           return maybeHandler(parsed.data, ctx);
         };
         else throw new TypeError("setRequestHandler: handler is required");
+        if (typeof schemasOrHandler === "function") this._customSchemaRequestMethods.delete(method);
+        else this._customSchemaRequestMethods.add(method);
         this._requestHandlers.set(method, this._wrapHandler(method, stored));
       }
       /**
@@ -25850,6 +25953,7 @@ var init_src_CX2iR2pK = __esm({
       */
       removeRequestHandler(method) {
         this._requestHandlers.delete(method);
+        this._customSchemaRequestMethods.delete(method);
       }
       /**
       * Asserts that a request handler has not already been set for the given method, in preparation for a new one being automatically installed.
@@ -25967,7 +26071,7 @@ var init_src_CX2iR2pK = __esm({
   }
 });
 
-// node_modules/@modelcontextprotocol/server/dist/ajvProvider-CEoC__sr.mjs
+// node_modules/@modelcontextprotocol/server/dist/ajvProvider-DyjnscPj.mjs
 function createDefaultAjvInstance(engineClass) {
   const ajv = new engineClass({
     strict: false,
@@ -25979,10 +26083,10 @@ function createDefaultAjvInstance(engineClass) {
   return ajv;
 }
 var require_code$1, require_scope, require_codegen, require_util, require_names, require_errors, require_boolSchema, require_rules, require_applicability, require_dataType, require_defaults, require_code, require_keyword, require_subschema, require_fast_deep_equal, require_json_schema_traverse, require_resolve, require_validate, require_validation_error, require_ref_error, require_compile, require_data, require_utils, require_schemes, require_fast_uri, require_uri, require_core$3, require_id, require_ref, require_core$2, require_limitNumber, require_multipleOf, require_ucs2length, require_limitLength, require_pattern, require_limitProperties, require_required, require_limitItems, require_equal, require_uniqueItems, require_const, require_enum, require_validation$2, require_additionalItems, require_items, require_prefixItems, require_items2020, require_contains, require_dependencies, require_propertyNames, require_additionalProperties, require_properties, require_patternProperties, require_not, require_anyOf, require_oneOf, require_allOf, require_if, require_thenElse, require_applicator$2, require_format$2, require_format$1, require_metadata, require_draft7, require_types, require_discriminator, require_json_schema_draft_07, require_ajv, require_dynamicAnchor, require_dynamicRef, require_recursiveAnchor, require_recursiveRef, require_dynamic, require_dependentRequired, require_dependentSchemas, require_limitContains, require_next, require_unevaluatedProperties, require_unevaluatedItems, require_unevaluated$1, require_schema$1, require_applicator$1, require_content$1, require_core$1, require_format, require_meta_data$1, require_validation$1, require_json_schema_2019_09, require__2019, require_draft2020, require_schema, require_applicator, require_unevaluated, require_content, require_core, require_format_annotation, require_meta_data, require_validation, require_json_schema_2020_12, require__2020, require_formats, require_limit, require_dist, import_ajv, import__2019, import__2020, import_dist, addFormats, AjvJsonSchemaValidator, Ajv;
-var init_ajvProvider_CEoC_sr = __esm({
-  "node_modules/@modelcontextprotocol/server/dist/ajvProvider-CEoC__sr.mjs"() {
-    init_chunk_Br0eD_fh();
-    init_dialects_DoSzNhcb();
+var init_ajvProvider_DyjnscPj = __esm({
+  "node_modules/@modelcontextprotocol/server/dist/ajvProvider-DyjnscPj.mjs"() {
+    init_chunk_vYduTEsO();
+    init_dialects_CDpMbily();
     require_code$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
       Object.defineProperty(exports, "__esModule", { value: true });
       exports.regexpCode = exports.getEsmExportName = exports.getProperty = exports.safeStringify = exports.stringify = exports.strConcat = exports.addCodeArg = exports.str = exports._ = exports.nil = exports._Code = exports.Name = exports.IDENTIFIER = exports._CodeOrName = void 0;
@@ -28664,6 +28768,22 @@ var init_ajvProvider_CEoC_sr = __esm({
     require_utils = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       const isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu);
       const isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u);
+      const isPort = RegExp.prototype.test.bind(/^\d*$/u);
+      const isHexPair = RegExp.prototype.test.bind(/^[\da-f]{2}$/iu);
+      const isUnreserved = RegExp.prototype.test.bind(/^[\da-z\-._~]$/iu);
+      const isPathCharacter = RegExp.prototype.test.bind(/^[A-Za-z0-9\-._~!$&'()*+,;=:@/]$/u);
+      const isQueryFragmentCharacter = RegExp.prototype.test.bind(/^[A-Za-z0-9\-._~!$&'()*+,;=:@/?]$/u);
+      const isUserinfoCharacter = RegExp.prototype.test.bind(/^[A-Za-z0-9\-._~!$&'()*+,;=:]$/u);
+      const BYTE_HEX = new Array(256);
+      {
+        const HEX_DIGITS = "0123456789ABCDEF";
+        for (let i = 0; i < 256; i++) BYTE_HEX[i] = "%" + HEX_DIGITS[i >> 4] + HEX_DIGITS[i & 15];
+      }
+      function percentEncodeNonAscii(cp) {
+        if (cp < 2048) return BYTE_HEX[192 | cp >> 6] + BYTE_HEX[128 | cp & 63];
+        if (cp < 65536) return BYTE_HEX[224 | cp >> 12] + BYTE_HEX[128 | cp >> 6 & 63] + BYTE_HEX[128 | cp & 63];
+        return BYTE_HEX[240 | cp >> 18] + BYTE_HEX[128 | cp >> 12 & 63] + BYTE_HEX[128 | cp >> 6 & 63] + BYTE_HEX[128 | cp & 63];
+      }
       function stringArrayToHexStripped(input2) {
         let acc = "";
         let code = 0;
@@ -28682,83 +28802,120 @@ var init_ajvProvider_CEoC_sr = __esm({
         }
         return acc;
       }
+      const isHextet = RegExp.prototype.test.bind(/^[\dA-Fa-f]{1,4}$/);
+      const isIPvFuture = RegExp.prototype.test.bind(/^[vV][\dA-Fa-f]+\.[A-Za-z\d\-._~!$&'()*+,;=:]+$/);
+      const isZoneCharacter = RegExp.prototype.test.bind(/^[A-Za-z\d\-._~]$/);
       const nonSimpleDomain = RegExp.prototype.test.bind(/[^!"$&'()*+,\-.;=_`a-z{}~]/u);
-      function consumeIsZone(buffer) {
-        buffer.length = 0;
-        return true;
-      }
-      function consumeHextets(buffer, address, output2) {
-        if (buffer.length) {
-          const hex3 = stringArrayToHexStripped(buffer);
-          if (hex3 !== "") address.push(hex3);
-          else {
-            output2.error = true;
-            return false;
+      function isZoneIdentifier(zone) {
+        if (zone.length === 0) return false;
+        for (let i = 0; i < zone.length; i++) {
+          if (isZoneCharacter(zone[i])) continue;
+          if (zone[i] === "%" && i + 2 < zone.length && isHexPair(zone.slice(i + 1, i + 3))) {
+            i += 2;
+            continue;
           }
-          buffer.length = 0;
+          return false;
         }
         return true;
       }
-      function getIPV6(input2) {
-        let tokenCount = 0;
-        const output2 = {
-          error: false,
-          address: "",
-          zone: ""
-        };
-        const address = [];
-        const buffer = [];
-        let endipv6Encountered = false;
-        let endIpv6 = false;
-        let consume = consumeHextets;
-        for (let i = 0; i < input2.length; i++) {
-          const cursor = input2[i];
-          if (cursor === "[" || cursor === "]") continue;
-          if (cursor === ":") {
-            if (endipv6Encountered === true) endIpv6 = true;
-            if (!consume(buffer, address, output2)) break;
-            if (++tokenCount > 7) {
-              output2.error = true;
-              break;
-            }
-            if (i > 0 && input2[i - 1] === ":") endipv6Encountered = true;
-            address.push(":");
-            continue;
-          } else if (cursor === "%") {
-            if (!consume(buffer, address, output2)) break;
-            consume = consumeIsZone;
-          } else {
-            buffer.push(cursor);
+      function compressIPv6ZeroRun(hextets) {
+        let bestStart = -1;
+        let bestLength = 0;
+        let runStart = -1;
+        let runLength = 0;
+        for (let i = 0; i < hextets.length; i++) if (hextets[i] === "0") {
+          if (runStart === -1) runStart = i;
+          runLength++;
+          if (runLength > bestLength) {
+            bestLength = runLength;
+            bestStart = runStart;
+          }
+        } else {
+          runStart = -1;
+          runLength = 0;
+        }
+        if (bestLength < 2) return hextets.join(":");
+        const head = hextets.slice(0, bestStart).join(":");
+        const tail = hextets.slice(bestStart + bestLength).join(":");
+        return head + "::" + tail;
+      }
+      function normalizeIPv6Address(input2) {
+        const compression = input2.indexOf("::");
+        if (compression !== -1 && input2.indexOf("::", compression + 1) !== -1) return void 0;
+        const left = compression === -1 ? input2.split(":") : input2.slice(0, compression).split(":");
+        const right = compression === -1 ? [] : input2.slice(compression + 2).split(":");
+        if (compression !== -1) {
+          if (left.length === 1 && left[0] === "") left.length = 0;
+          if (right.length === 1 && right[0] === "") right.length = 0;
+        }
+        const parts = left.concat(right);
+        let hextetCount = 0;
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i];
+          if (part === "") return void 0;
+          if (part.indexOf(".") !== -1) {
+            if (i !== parts.length - 1 || compression !== -1 && right.length === 0 || !isIPv4(part)) return void 0;
+            hextetCount += 2;
             continue;
           }
+          if (!isHextet(part)) return void 0;
+          parts[i] = parseInt(part, 16).toString(16);
+          hextetCount++;
         }
-        if (buffer.length) if (consume === consumeIsZone) output2.zone = buffer.join("");
-        else if (endIpv6) address.push(buffer.join(""));
-        else address.push(stringArrayToHexStripped(buffer));
-        output2.address = address.join("");
-        return output2;
+        if (compression === -1) {
+          if (hextetCount !== 8) return void 0;
+          return compressIPv6ZeroRun(parts);
+        }
+        if (hextetCount >= 8) return void 0;
+        const expanded = parts.slice(0, left.length);
+        for (let i = hextetCount; i < 8; i++) expanded.push("0");
+        for (let i = left.length; i < parts.length; i++) expanded.push(parts[i]);
+        return compressIPv6ZeroRun(expanded);
       }
       function normalizeIPv6(host) {
-        if (findToken(host, ":") < 2) return {
+        const bracketed = host[0] === "[" && host[host.length - 1] === "]";
+        if ((host[0] === "[" || host[host.length - 1] === "]") && !bracketed) return {
           host,
-          isIPV6: false
+          isIPV6: false,
+          error: true
         };
-        const ipv63 = getIPV6(host);
-        if (!ipv63.error) {
-          let newHost = ipv63.address;
-          let escapedHost = ipv63.address;
-          if (ipv63.zone) {
-            newHost += "%" + ipv63.zone;
-            escapedHost += "%25" + ipv63.zone;
-          }
+        let input2 = bracketed ? host.slice(1, -1) : host;
+        if (bracketed && isIPvFuture(input2)) {
+          input2 = input2.toLowerCase();
           return {
-            host: newHost,
-            isIPV6: true,
-            escapedHost
+            host: `[${input2}]`,
+            escapedHost: input2,
+            isIPV6: false,
+            isIPVFuture: true
           };
-        } else return {
+        }
+        if (findToken(input2, ":") < 2) return {
           host,
-          isIPV6: false
+          isIPV6: false,
+          error: bracketed
+        };
+        let zoneIdentifier = "";
+        const zoneSeparator = input2.indexOf("%");
+        if (zoneSeparator !== -1) {
+          const separatorLength = input2.slice(zoneSeparator, zoneSeparator + 3).toLowerCase() === "%25" ? 3 : 1;
+          zoneIdentifier = input2.slice(zoneSeparator + separatorLength);
+          if (!isZoneIdentifier(zoneIdentifier)) return {
+            host,
+            isIPV6: false,
+            error: true
+          };
+          input2 = input2.slice(0, zoneSeparator);
+        }
+        const address = normalizeIPv6Address(input2);
+        if (address === void 0) return {
+          host,
+          isIPV6: false,
+          error: true
+        };
+        return {
+          host: address + (zoneIdentifier ? "%" + zoneIdentifier : ""),
+          escapedHost: address + (zoneIdentifier ? "%25" + zoneIdentifier : ""),
+          isIPV6: true
         };
       }
       function findToken(str, token) {
@@ -28834,41 +28991,225 @@ var init_ajvProvider_CEoC_sr = __esm({
         }
         return output2.join("");
       }
-      function normalizeComponentEncoding(component, esc2) {
-        const func = esc2 !== true ? escape : unescape;
-        if (component.scheme !== void 0) component.scheme = func(component.scheme);
-        if (component.userinfo !== void 0) component.userinfo = func(component.userinfo);
-        if (component.host !== void 0) component.host = func(component.host);
-        if (component.path !== void 0) component.path = func(component.path);
-        if (component.query !== void 0) component.query = func(component.query);
-        if (component.fragment !== void 0) component.fragment = func(component.fragment);
-        return component;
+      const HOST_DELIMS = {
+        "@": "%40",
+        "/": "%2F",
+        "?": "%3F",
+        "#": "%23",
+        ":": "%3A"
+      };
+      const HOST_DELIM_RE = /[@/?#:]/g;
+      const HOST_DELIM_NO_COLON_RE = /[@/?#]/g;
+      function reescapeHostDelimiters(host, isIP) {
+        const re = isIP ? HOST_DELIM_NO_COLON_RE : HOST_DELIM_RE;
+        re.lastIndex = 0;
+        return host.replace(re, (ch) => HOST_DELIMS[ch]);
+      }
+      function normalizePercentEncoding(input2, decodeUnreserved = false) {
+        if (input2.indexOf("%") === -1) return input2;
+        let output2 = "";
+        for (let i = 0; i < input2.length; i++) {
+          if (input2[i] === "%" && i + 2 < input2.length) {
+            const hex3 = input2.slice(i + 1, i + 3);
+            if (isHexPair(hex3)) {
+              const normalizedHex = hex3.toUpperCase();
+              const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
+              if (decodeUnreserved && isUnreserved(decoded)) output2 += decoded;
+              else output2 += "%" + normalizedHex;
+              i += 2;
+              continue;
+            }
+          }
+          output2 += input2[i];
+        }
+        return output2;
+      }
+      function normalizePathEncoding(input2) {
+        let output2 = "";
+        for (let i = 0; i < input2.length; i++) {
+          const ch = input2[i];
+          if (ch === "%" && i + 2 < input2.length) {
+            const hex3 = input2.slice(i + 1, i + 3);
+            if (isHexPair(hex3)) {
+              const normalizedHex = hex3.toUpperCase();
+              const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
+              if (decoded !== "." && isUnreserved(decoded)) output2 += decoded;
+              else output2 += "%" + normalizedHex;
+              i += 2;
+              continue;
+            }
+          }
+          if (isPathCharacter(ch)) output2 += ch;
+          else {
+            const code = input2.charCodeAt(i);
+            if (code < 128) output2 += isEscapeSafe(code) ? ch : BYTE_HEX[code];
+            else if (code < 55296 || code > 57343) output2 += percentEncodeNonAscii(code);
+            else if (code <= 56319 && i + 1 < input2.length) {
+              const low = input2.charCodeAt(i + 1);
+              if (low >= 56320 && low <= 57343) {
+                output2 += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+                i++;
+              } else output2 += percentEncodeNonAscii(65533);
+            } else output2 += percentEncodeNonAscii(65533);
+          }
+        }
+        return output2;
+      }
+      function serializePathEncoding(input2, pathNoScheme = false) {
+        let output2 = "";
+        let firstSegment = pathNoScheme && input2[0] !== "/";
+        for (let i = 0; i < input2.length; i++) {
+          const ch = input2[i];
+          if (ch === "%" && i + 2 < input2.length) {
+            const hex3 = input2.slice(i + 1, i + 3);
+            if (isHexPair(hex3)) {
+              output2 += "%" + hex3.toUpperCase();
+              i += 2;
+              continue;
+            }
+          }
+          if (ch === "/") firstSegment = false;
+          if (isPathCharacter(ch) && (ch !== ":" || !firstSegment)) output2 += ch;
+          else {
+            const code = input2.charCodeAt(i);
+            if (code < 128) output2 += BYTE_HEX[code];
+            else if (code < 55296 || code > 57343) output2 += percentEncodeNonAscii(code);
+            else if (code <= 56319 && i + 1 < input2.length) {
+              const low = input2.charCodeAt(i + 1);
+              if (low >= 56320 && low <= 57343) {
+                output2 += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+                i++;
+              } else output2 += percentEncodeNonAscii(65533);
+            } else output2 += percentEncodeNonAscii(65533);
+          }
+        }
+        return output2;
+      }
+      function encodeComponent(input2, isAllowed) {
+        let output2 = "";
+        for (let i = 0; i < input2.length; i++) {
+          const ch = input2[i];
+          if (ch === "%" && i + 2 < input2.length) {
+            const hex3 = input2.slice(i + 1, i + 3);
+            if (isHexPair(hex3)) {
+              output2 += "%" + hex3.toUpperCase();
+              i += 2;
+              continue;
+            }
+          }
+          if (isAllowed(ch)) output2 += ch;
+          else {
+            const code = input2.charCodeAt(i);
+            if (code < 128) output2 += BYTE_HEX[code];
+            else if (code < 55296 || code > 57343) output2 += percentEncodeNonAscii(code);
+            else if (code <= 56319 && i + 1 < input2.length) {
+              const low = input2.charCodeAt(i + 1);
+              if (low >= 56320 && low <= 57343) {
+                output2 += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+                i++;
+              } else output2 += percentEncodeNonAscii(65533);
+            } else output2 += percentEncodeNonAscii(65533);
+          }
+        }
+        return output2;
+      }
+      function encodeUserinfo(input2) {
+        return encodeComponent(input2, isUserinfoCharacter);
+      }
+      function encodeQuery(input2) {
+        return encodeComponent(input2, isQueryFragmentCharacter);
+      }
+      function encodeFragment(input2) {
+        return encodeComponent(input2, isQueryFragmentCharacter);
+      }
+      function isEscapeSafe(cp) {
+        return cp >= 48 && cp <= 57 || cp >= 65 && cp <= 90 || cp >= 97 && cp <= 122 || cp === 42 || cp === 43 || cp === 45 || cp === 46 || cp === 47 || cp === 64 || cp === 95;
+      }
+      function normalizeQueryFragmentEncoding(input2) {
+        let output2 = "";
+        for (let i = 0; i < input2.length; i++) {
+          const ch = input2[i];
+          if (ch === "%" && i + 2 < input2.length) {
+            const hex3 = input2.slice(i + 1, i + 3);
+            if (isHexPair(hex3)) {
+              const normalizedHex = hex3.toUpperCase();
+              const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
+              if (isUnreserved(decoded)) output2 += decoded;
+              else output2 += "%" + normalizedHex;
+              i += 2;
+              continue;
+            }
+          }
+          if (isQueryFragmentCharacter(ch)) output2 += ch;
+          else {
+            const code = input2.charCodeAt(i);
+            if (code < 128) output2 += isEscapeSafe(code) ? ch : BYTE_HEX[code];
+            else if (code < 55296 || code > 57343) output2 += percentEncodeNonAscii(code);
+            else if (code <= 56319 && i + 1 < input2.length) {
+              const low = input2.charCodeAt(i + 1);
+              if (low >= 56320 && low <= 57343) {
+                output2 += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+                i++;
+              } else output2 += percentEncodeNonAscii(65533);
+            } else output2 += percentEncodeNonAscii(65533);
+          }
+        }
+        return output2;
+      }
+      function escapePreservingEscapes(input2) {
+        let output2 = "";
+        for (let i = 0; i < input2.length; i++) {
+          if (input2[i] === "%" && i + 2 < input2.length) {
+            const hex3 = input2.slice(i + 1, i + 3);
+            if (isHexPair(hex3)) {
+              output2 += "%" + hex3.toUpperCase();
+              i += 2;
+              continue;
+            }
+          }
+          output2 += escape(input2[i]);
+        }
+        return output2;
       }
       function recomposeAuthority(component) {
         const uriTokens = [];
         if (component.userinfo !== void 0) {
-          uriTokens.push(component.userinfo);
+          uriTokens.push(encodeUserinfo(component.userinfo));
           uriTokens.push("@");
         }
         if (component.host !== void 0) {
-          let host = unescape(component.host);
+          let host = component.host;
           if (!isIPv4(host)) {
-            const ipV6res = normalizeIPv6(host);
-            if (ipV6res.isIPV6 === true) host = `[${ipV6res.escapedHost}]`;
-            else host = component.host;
+            let ipV6res = normalizeIPv6(host);
+            if (ipV6res.isIPV6 !== true && ipV6res.isIPVFuture !== true) {
+              host = normalizePercentEncoding(host, true);
+              ipV6res = normalizeIPv6(host);
+            }
+            if (ipV6res.isIPV6 === true || ipV6res.isIPVFuture === true) host = `[${ipV6res.escapedHost}]`;
+            else host = reescapeHostDelimiters(host, false);
           }
           uriTokens.push(host);
         }
         if (typeof component.port === "number" || typeof component.port === "string") {
+          const port = String(component.port);
+          if (!isPort(port)) throw new TypeError("URI port is malformed.");
           uriTokens.push(":");
-          uriTokens.push(String(component.port));
+          uriTokens.push(port);
         }
         return uriTokens.length ? uriTokens.join("") : void 0;
       }
       module.exports = {
         nonSimpleDomain,
         recomposeAuthority,
-        normalizeComponentEncoding,
+        reescapeHostDelimiters,
+        normalizePercentEncoding,
+        normalizePathEncoding,
+        serializePathEncoding,
+        normalizeQueryFragmentEncoding,
+        encodeUserinfo,
+        encodeQuery,
+        encodeFragment,
+        escapePreservingEscapes,
         removeDotSegments,
         isIPv4,
         isUUID,
@@ -28878,7 +29219,7 @@ var init_ajvProvider_CEoC_sr = __esm({
     }));
     require_schemes = /* @__PURE__ */ __commonJSMin(((exports, module) => {
       const { isUUID } = require_utils();
-      const URN_REG = /([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-.:;=@]|%[\da-f]{2})+)/iu;
+      const URN_REG = /^([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-./:;=@]|%[\da-f]{2})+)$/iu;
       const supportedSchemeNames = [
         "http",
         "https",
@@ -28920,9 +29261,10 @@ var init_ajvProvider_CEoC_sr = __esm({
           wsComponent.secure = void 0;
         }
         if (wsComponent.resourceName) {
-          const [path3, query] = wsComponent.resourceName.split("?");
+          const queryIndex = wsComponent.resourceName.indexOf("?");
+          const path3 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
           wsComponent.path = path3 && path3 !== "/" ? path3 : void 0;
-          wsComponent.query = query;
+          wsComponent.query = queryIndex === -1 ? void 0 : wsComponent.resourceName.slice(queryIndex + 1);
           wsComponent.resourceName = void 0;
         }
         wsComponent.fragment = void 0;
@@ -28934,7 +29276,7 @@ var init_ajvProvider_CEoC_sr = __esm({
           return urnComponent;
         }
         const matches = urnComponent.path.match(URN_REG);
-        if (matches) {
+        if (matches && matches[0] === urnComponent.path) {
           const scheme = options.scheme || urnComponent.scheme || "urn";
           urnComponent.nid = matches[1].toLowerCase();
           urnComponent.nss = matches[2];
@@ -29024,16 +29366,32 @@ var init_ajvProvider_CEoC_sr = __esm({
       };
     }));
     require_fast_uri = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-      const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizeComponentEncoding, isIPv4, nonSimpleDomain } = require_utils();
+      const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils();
       const { SCHEMES, getSchemeHandler } = require_schemes();
+      const VALID_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*$/u;
+      const MALFORMED_SCHEME_ERROR = "URI scheme is malformed.";
+      function decodeValidScheme(scheme) {
+        const decodedScheme = unescape(String(scheme));
+        if (!VALID_SCHEME.test(decodedScheme)) throw new TypeError(MALFORMED_SCHEME_ERROR);
+        return decodedScheme;
+      }
       function normalize(uri, options) {
-        if (typeof uri === "string") uri = serialize(parse3(uri, options), options);
+        if (typeof uri === "string") uri = normalizeString(uri, options);
         else if (typeof uri === "object") uri = parse3(serialize(uri, options), options);
         return uri;
       }
       function resolve(baseURI, relativeURI, options) {
         const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
-        const resolved = resolveComponent(parse3(baseURI, schemelessOptions), parse3(relativeURI, schemelessOptions), schemelessOptions, true);
+        const { parsed: baseParsed, malformedAuthorityOrPort: baseMalformed, malformedPercentEncoding: baseMalformedPercentEncoding, malformedSchemeSpecific: baseMalformedSchemeSpecific, malformedHost: baseMalformedHost, malformedScheme: baseMalformedScheme } = parseWithStatus(baseURI, schemelessOptions);
+        const { parsed: relativeParsed, malformedAuthorityOrPort: relativeMalformed, malformedPercentEncoding: relativeMalformedPercentEncoding, malformedSchemeSpecific: relativeMalformedSchemeSpecific, malformedHost: relativeMalformedHost, malformedScheme: relativeMalformedScheme } = parseWithStatus(relativeURI, schemelessOptions);
+        if (baseMalformed || relativeMalformed || baseMalformedPercentEncoding || relativeMalformedPercentEncoding || baseMalformedSchemeSpecific || relativeMalformedSchemeSpecific || baseMalformedHost || relativeMalformedHost || baseMalformedScheme || relativeMalformedScheme) throw new Error(baseParsed.error || relativeParsed.error || "URI is malformed.");
+        const resolved = resolveComponent(baseParsed, relativeParsed, schemelessOptions, true);
+        const resolvedSchemeHandler = getSchemeHandler(options && options.scheme || resolved.scheme);
+        const resolvedHost = resolved.host;
+        const resolvedHostIsIP = resolvedHost !== void 0 && resolvedHost !== "" && (isIPv4(resolvedHost) || normalizeIPv6(resolvedHost).isIPV6);
+        canonicalizeHost(resolved, options || {}, resolvedSchemeHandler, resolvedHostIsIP);
+        const encodedASCIIHost = resolvedHost && resolvedHost.indexOf("%") !== -1 && !new RegExp("\\P{ASCII}", "u").test(resolvedHost);
+        if (resolved.error && !encodedASCIIHost) throw new Error(resolved.error);
         schemelessOptions.skipEscape = true;
         return serialize(resolved, schemelessOptions);
       }
@@ -29083,27 +29441,9 @@ var init_ajvProvider_CEoC_sr = __esm({
         return target;
       }
       function equal(uriA, uriB, options) {
-        if (typeof uriA === "string") {
-          uriA = unescape(uriA);
-          uriA = serialize(normalizeComponentEncoding(parse3(uriA, options), true), {
-            ...options,
-            skipEscape: true
-          });
-        } else if (typeof uriA === "object") uriA = serialize(normalizeComponentEncoding(uriA, true), {
-          ...options,
-          skipEscape: true
-        });
-        if (typeof uriB === "string") {
-          uriB = unescape(uriB);
-          uriB = serialize(normalizeComponentEncoding(parse3(uriB, options), true), {
-            ...options,
-            skipEscape: true
-          });
-        } else if (typeof uriB === "object") uriB = serialize(normalizeComponentEncoding(uriB, true), {
-          ...options,
-          skipEscape: true
-        });
-        return uriA.toLowerCase() === uriB.toLowerCase();
+        const normalizedA = normalizeComparableURI(uriA, options);
+        const normalizedB = normalizeComparableURI(uriB, options);
+        return normalizedA !== void 0 && normalizedB !== void 0 && normalizedA === normalizedB;
       }
       function serialize(cmpts, opts) {
         const component = {
@@ -29124,13 +29464,17 @@ var init_ajvProvider_CEoC_sr = __esm({
         };
         const options = Object.assign({}, opts);
         const uriTokens = [];
+        if (component.scheme) component.scheme = decodeValidScheme(component.scheme);
         const schemeHandler = getSchemeHandler(options.scheme || component.scheme);
         if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(component, options);
-        if (component.path !== void 0) if (!options.skipEscape) {
-          component.path = escape(component.path);
-          if (component.scheme !== void 0) component.path = component.path.split("%3A").join(":");
-        } else component.path = unescape(component.path);
-        if (options.reference !== "suffix" && component.scheme) uriTokens.push(component.scheme, ":");
+        const hasAuthority = component.userinfo !== void 0 || component.host !== void 0 || component.port !== void 0;
+        const pathNoScheme = !options.skipEscape && component.scheme === void 0 && !hasAuthority;
+        if (component.path !== void 0) if (!options.skipEscape) component.path = serializePathEncoding(component.path, pathNoScheme);
+        else component.path = normalizePercentEncoding(component.path);
+        if (options.reference !== "suffix" && component.scheme) {
+          component.scheme = decodeValidScheme(component.scheme);
+          uriTokens.push(component.scheme, ":");
+        }
         const authority = recomposeAuthority(component);
         if (authority !== void 0) {
           if (options.reference !== "suffix") uriTokens.push("//");
@@ -29140,15 +29484,47 @@ var init_ajvProvider_CEoC_sr = __esm({
         if (component.path !== void 0) {
           let s = component.path;
           if (!options.absolutePath && (!schemeHandler || !schemeHandler.absolutePath)) s = removeDotSegments(s);
+          if (pathNoScheme) s = serializePathEncoding(s, true);
           if (authority === void 0 && s[0] === "/" && s[1] === "/") s = "/%2F" + s.slice(2);
           uriTokens.push(s);
         }
-        if (component.query !== void 0) uriTokens.push("?", component.query);
-        if (component.fragment !== void 0) uriTokens.push("#", component.fragment);
+        if (component.query !== void 0) uriTokens.push("?", encodeQuery(component.query));
+        if (component.fragment !== void 0) uriTokens.push("#", encodeFragment(component.fragment));
         return uriTokens.join("");
       }
       const URI_PARSE = /^(?:([^#/:?]+):)?(?:\/\/((?:([^#/?@]*)@)?(\[[^#/?\]]+\]|[^#/:?]*)(?::(\d*))?))?([^#?]*)(?:\?([^#]*))?(?:#((?:.|[\n\r])*))?/u;
-      function parse3(uri, opts) {
+      const AUTHORITY_PREFIX = /^(?:[^#/:?]+:)?\/\/([^/?#]*)/;
+      const AUTHORITY_INTRODUCER_REGION = /^(?:[^#/:?]+:)?([/\\\t\n\r]*)/;
+      function getParseError(parsed, matches) {
+        if (matches[2] !== void 0 && parsed.path && parsed.path[0] !== "/") return 'URI path must start with "/" when authority is present.';
+        if (typeof parsed.port === "number" && (parsed.port < 0 || parsed.port > 65535)) return "URI port is malformed.";
+      }
+      function hasMalformedPercentEncoding(component) {
+        if (component === void 0) return false;
+        let percent = component.indexOf("%");
+        while (percent !== -1) {
+          if (percent + 2 >= component.length || !/^[\da-f]{2}$/iu.test(component.slice(percent + 1, percent + 3))) return true;
+          percent = component.indexOf("%", percent + 3);
+        }
+        return false;
+      }
+      function isIPLiteral(host) {
+        return host[0] === "[" && host[host.length - 1] === "]";
+      }
+      function hasMalformedComponentPercentEncoding(matches) {
+        const host = matches[4];
+        return hasMalformedPercentEncoding(matches[3]) || host !== void 0 && !isIPLiteral(host) && hasMalformedPercentEncoding(host) || hasMalformedPercentEncoding(matches[6]) || hasMalformedPercentEncoding(matches[7]) || hasMalformedPercentEncoding(matches[8]);
+      }
+      function canonicalizeHost(parsed, options, schemeHandler, isIP) {
+        if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport) && parsed.host && !isIPLiteral(parsed.host) && (options.domainHost || schemeHandler && schemeHandler.domainHost) && isIP === false && nonSimpleDomain(parsed.host)) try {
+          parsed.host = new URL("http://" + parsed.host).hostname;
+        } catch (e) {
+          parsed.error = parsed.error || "Host's domain name can not be converted to ASCII: " + e;
+          return true;
+        }
+        return false;
+      }
+      function parseWithStatus(uri, opts) {
         const options = Object.assign({}, opts);
         const parsed = {
           scheme: void 0,
@@ -29159,9 +29535,34 @@ var init_ajvProvider_CEoC_sr = __esm({
           query: void 0,
           fragment: void 0
         };
+        let malformedAuthorityOrPort = false;
+        let malformedPercentEncoding = false;
+        let malformedSchemeSpecific = false;
+        let malformedHost = false;
+        let malformedIPLiteral = false;
+        let malformedScheme = false;
         let isIP = false;
         if (options.reference === "suffix") if (options.scheme) uri = options.scheme + ":" + uri;
         else uri = "//" + uri;
+        const authorityMatch = uri.match(AUTHORITY_PREFIX);
+        if (authorityMatch !== null && authorityMatch[1].indexOf("\\") !== -1) {
+          parsed.error = "URI authority must not contain a literal backslash.";
+          malformedAuthorityOrPort = true;
+        }
+        const introducerMatch = uri.match(AUTHORITY_INTRODUCER_REGION);
+        if (introducerMatch !== null) {
+          const region = introducerMatch[1];
+          const normalizedRegion = region.replace(/[\t\n\r]/g, "");
+          if (normalizedRegion.length >= 2) {
+            if (normalizedRegion.slice(0, 2) !== "//") {
+              parsed.error = parsed.error || "URI authority must not contain a literal backslash.";
+              malformedAuthorityOrPort = true;
+            } else if (region.length !== normalizedRegion.length) {
+              parsed.error = parsed.error || "URI authority introducer must not contain whitespace.";
+              malformedAuthorityOrPort = true;
+            }
+          }
+        }
         const matches = uri.match(URI_PARSE);
         if (matches) {
           parsed.scheme = matches[1];
@@ -29171,11 +29572,33 @@ var init_ajvProvider_CEoC_sr = __esm({
           parsed.path = matches[6] || "";
           parsed.query = matches[7];
           parsed.fragment = matches[8];
+          if (parsed.scheme !== void 0) {
+            const decodedScheme = unescape(parsed.scheme);
+            if (VALID_SCHEME.test(decodedScheme)) parsed.scheme = decodedScheme.toLowerCase();
+            else {
+              parsed.error = parsed.error || MALFORMED_SCHEME_ERROR;
+              malformedScheme = true;
+            }
+          }
+          malformedPercentEncoding = hasMalformedComponentPercentEncoding(matches);
+          if (malformedPercentEncoding) parsed.error = parsed.error || "URI contains malformed percent-encoding.";
           if (isNaN(parsed.port)) parsed.port = matches[5];
+          const parseError = getParseError(parsed, matches);
+          if (parseError !== void 0) {
+            parsed.error = parsed.error || parseError;
+            malformedAuthorityOrPort = true;
+          }
           if (parsed.host) if (isIPv4(parsed.host) === false) {
+            const bracketedIPLiteral = isIPLiteral(parsed.host);
+            const hasIPLiteralBracket = parsed.host.indexOf("[") !== -1 || parsed.host.indexOf("]") !== -1;
             const ipv6result = normalizeIPv6(parsed.host);
-            parsed.host = ipv6result.host.toLowerCase();
-            isIP = ipv6result.isIPV6;
+            isIP = ipv6result.isIPV6 || ipv6result.isIPVFuture === true;
+            malformedIPLiteral = hasIPLiteralBracket && (!bracketedIPLiteral || ipv6result.error === true);
+            parsed.host = isIP ? ipv6result.host : ipv6result.host.toLowerCase();
+            if (malformedIPLiteral) {
+              parsed.error = parsed.error || "URI host is malformed.";
+              malformedAuthorityOrPort = true;
+            }
           } else isIP = true;
           if (parsed.scheme === void 0 && parsed.userinfo === void 0 && parsed.host === void 0 && parsed.port === void 0 && parsed.query === void 0 && !parsed.path) parsed.reference = "same-document";
           else if (parsed.scheme === void 0) parsed.reference = "relative";
@@ -29183,24 +29606,58 @@ var init_ajvProvider_CEoC_sr = __esm({
           else parsed.reference = "uri";
           if (options.reference && options.reference !== "suffix" && options.reference !== parsed.reference) parsed.error = parsed.error || "URI is not a " + options.reference + " reference.";
           const schemeHandler = getSchemeHandler(options.scheme || parsed.scheme);
-          if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport)) {
-            if (parsed.host && (options.domainHost || schemeHandler && schemeHandler.domainHost) && isIP === false && nonSimpleDomain(parsed.host)) try {
-              parsed.host = URL.domainToASCII(parsed.host.toLowerCase());
-            } catch (e) {
-              parsed.error = parsed.error || "Host's domain name can not be converted to ASCII: " + e;
-            }
+          if (!malformedIPLiteral) malformedHost = canonicalizeHost(parsed, options, schemeHandler, isIP);
+          if (uri.indexOf("%") !== -1 && parsed.host !== void 0 && !malformedIPLiteral) {
+            let host = isIP ? parsed.host : normalizePercentEncoding(parsed.host, true);
+            if (!isIP) host = normalizePercentEncoding(host.toLowerCase());
+            parsed.host = reescapeHostDelimiters(host, isIP);
           }
           if (!schemeHandler || schemeHandler && !schemeHandler.skipNormalize) {
-            if (uri.indexOf("%") !== -1) {
-              if (parsed.scheme !== void 0) parsed.scheme = unescape(parsed.scheme);
-              if (parsed.host !== void 0) parsed.host = unescape(parsed.host);
-            }
-            if (parsed.path) parsed.path = escape(unescape(parsed.path));
-            if (parsed.fragment) parsed.fragment = encodeURI(decodeURIComponent(parsed.fragment));
+            if (parsed.path) parsed.path = normalizePathEncoding(parsed.path);
+            if (parsed.query) parsed.query = normalizeQueryFragmentEncoding(parsed.query);
+            if (parsed.fragment) parsed.fragment = normalizeQueryFragmentEncoding(parsed.fragment);
           }
-          if (schemeHandler && schemeHandler.parse) schemeHandler.parse(parsed, options);
+          if (schemeHandler && schemeHandler.parse) {
+            schemeHandler.parse(parsed, options);
+            if (schemeHandler === SCHEMES.urn && parsed.nid === void 0) malformedSchemeSpecific = true;
+          }
         } else parsed.error = parsed.error || "URI can not be parsed.";
-        return parsed;
+        return {
+          parsed,
+          malformedAuthorityOrPort,
+          malformedPercentEncoding,
+          malformedSchemeSpecific,
+          malformedHost,
+          malformedScheme
+        };
+      }
+      function parse3(uri, opts) {
+        return parseWithStatus(uri, opts).parsed;
+      }
+      function normalizeString(uri, opts) {
+        return normalizeStringWithStatus(uri, opts).normalized;
+      }
+      function normalizeStringWithStatus(uri, opts) {
+        const { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = parseWithStatus(uri, opts);
+        return {
+          normalized: malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific || malformedHost || malformedScheme ? uri : serialize(parsed, opts),
+          malformedAuthorityOrPort,
+          malformedPercentEncoding,
+          malformedSchemeSpecific,
+          malformedHost,
+          malformedScheme
+        };
+      }
+      function normalizeComparableURI(uri, opts) {
+        if (typeof uri !== "string" && typeof uri !== "object") return;
+        let value;
+        try {
+          value = typeof uri === "string" ? uri : serialize(uri, opts);
+        } catch {
+          return;
+        }
+        const { normalized, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = normalizeStringWithStatus(value, opts);
+        return malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific || malformedHost || malformedScheme ? void 0 : normalized;
       }
       const fastUri = {
         SCHEMES,
@@ -32988,16 +33445,28 @@ var init_ajvProvider_CEoC_sr = __esm({
 import process2 from "node:process";
 var init_shimsNode = __esm({
   "node_modules/@modelcontextprotocol/server/dist/shimsNode.mjs"() {
-    init_ajvProvider_CEoC_sr();
+    init_ajvProvider_DyjnscPj();
   }
 });
 
-// node_modules/@modelcontextprotocol/server/dist/mcp-DXXb3Vv3.mjs
+// node_modules/@modelcontextprotocol/server/dist/mcp-oHn3ureC.mjs
 function isCompletable(schema) {
   return !!schema && typeof schema === "object" && COMPLETABLE_SYMBOL in schema;
 }
 function getCompleter(schema) {
   return schema[COMPLETABLE_SYMBOL]?.complete;
+}
+function armSseKeepAlive(intervalMs, onTick) {
+  if (!Number.isFinite(intervalMs) || intervalMs < 1) return;
+  const timer = setInterval(onTick, Math.min(intervalMs, MAX_TIMER_DELAY_MS));
+  timer.unref?.();
+  return timer;
+}
+function perRequestClassificationOf(transport) {
+  return transport instanceof PerRequestHTTPServerTransport ? readClassification(transport) : void 0;
+}
+function supportsScopeChallengeResolver(transport) {
+  return typeof transport === "object" && transport !== null && "setScopeChallengeResolver" in transport && typeof transport.setScopeChallengeResolver === "function";
 }
 function resolveLegacyShimOptions(options) {
   if (options?.maxRounds !== void 0 && (!Number.isInteger(options.maxRounds) || options.maxRounds < 1)) throw new RangeError(`inputRequired.maxRounds must be a positive integer (got ${options.maxRounds})`);
@@ -33041,6 +33510,30 @@ function legacyShimFailure(method, message) {
 function discoverAdvertisedCapabilities(capabilities) {
   return { ...capabilities };
 }
+function toolInputElementCount(value, max) {
+  let count = 0;
+  const stack = [value];
+  while (stack.length > 0) {
+    const node2 = stack.pop();
+    if (node2 === null || typeof node2 !== "object") continue;
+    if (Array.isArray(node2)) for (const child of node2) {
+      if (++count > max) return count;
+      if (child !== null && typeof child === "object") stack.push(child);
+    }
+    else for (const key in node2) {
+      if (!Object.prototype.hasOwnProperty.call(node2, key)) continue;
+      if (++count > max) return count;
+      const child = node2[key];
+      if (child !== null && typeof child === "object") stack.push(child);
+    }
+  }
+  return count;
+}
+function resolveMaxToolInputElements(value) {
+  if (value === void 0 || value === Infinity) return void 0;
+  if (typeof value !== "number" || Number.isNaN(value) || value < 1) throw new RangeError(`maxToolInputElements must be a number of at least 1, or Infinity, got ${String(value)}`);
+  return value;
+}
 function createToolExecutor(inputSchema, handler) {
   if (inputSchema) {
     const callback$1 = handler;
@@ -33048,6 +33541,12 @@ function createToolExecutor(inputSchema, handler) {
   }
   const callback = handler;
   return async (_args, ctx) => callback(ctx);
+}
+function convertListedInputSchema(name, inputSchema) {
+  const json2 = standardSchemaToJsonSchema(inputSchema, "input");
+  const scan = scanXMcpHeaderDeclarations(json2);
+  if (!scan.valid) console.warn(`[mcp-sdk] tool '${name}' carries an invalid x-mcp-header declaration and will be excluded by conforming Streamable HTTP clients: ${scan.reason}`);
+  return json2;
 }
 function convertOutputSchemaJson(outputSchema) {
   if (outputSchema === void 0) return void 0;
@@ -33061,7 +33560,7 @@ function createPromptHandler(name, argsSchema, callback) {
   if (argsSchema) {
     const typedCallback = callback;
     return async (args, ctx) => {
-      const parseResult = await validateStandardSchema(argsSchema, args);
+      const parseResult = await validateStandardSchema(argsSchema, args ?? {});
       if (!parseResult.success) throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Invalid arguments for prompt ${name}: ${parseResult.error}`);
       return typedCallback(parseResult.data, ctx);
     };
@@ -33090,13 +33589,232 @@ function unwrapOptionalSchema(schema) {
   if (!isOptionalSchema(schema)) return schema;
   return schema.def?.innerType ?? schema;
 }
-var COMPLETABLE_SYMBOL, MAX_TIMER_DELAY_MS, DEFAULT_LEGACY_SHIM_MAX_ROUNDS, DEFAULT_LEGACY_SHIM_ROUND_TIMEOUT_MS, LegacyInputRequiredShim, INPUT_REQUIRED_CAPABLE_METHODS, writeClientIdentity, installDiscoverHandler, readServerIdentity, Server, McpServer, EMPTY_OBJECT_JSON_SCHEMA, EMPTY_COMPLETION_RESULT;
-var init_mcp_DXXb3Vv3 = __esm({
-  "node_modules/@modelcontextprotocol/server/dist/mcp-DXXb3Vv3.mjs"() {
-    init_src_CX2iR2pK();
+var COMPLETABLE_SYMBOL, DEFAULT_SSE_KEEP_ALIVE_MS, MAX_TIMER_DELAY_MS, readClassification, PerRequestHTTPServerTransport, DEFAULT_LEGACY_SHIM_MAX_ROUNDS, DEFAULT_LEGACY_SHIM_ROUND_TIMEOUT_MS, LegacyInputRequiredShim, INPUT_REQUIRED_CAPABLE_METHODS, writeClientIdentity, installDiscoverHandler, readServerIdentity, Server, McpServer, EMPTY_OBJECT_JSON_SCHEMA, EMPTY_COMPLETION_RESULT;
+var init_mcp_oHn3ureC = __esm({
+  "node_modules/@modelcontextprotocol/server/dist/mcp-oHn3ureC.mjs"() {
+    init_src_DdvbAHrR();
     init_shimsNode();
     COMPLETABLE_SYMBOL = /* @__PURE__ */ Symbol.for("mcp.completable");
+    DEFAULT_SSE_KEEP_ALIVE_MS = 15e3;
     MAX_TIMER_DELAY_MS = 2 ** 31 - 1;
+    PerRequestHTTPServerTransport = class {
+      static {
+        readClassification = (transport) => transport._classification;
+      }
+      onclose;
+      onerror;
+      onmessage;
+      _classification;
+      _responseMode;
+      _started = false;
+      _used = false;
+      _closed = false;
+      _terminalDelivered = false;
+      /**
+      * `true` only while the inbound message is being delivered synchronously
+      * to the connected protocol layer. The pre-handler gates (the era
+      * registry gate, the edge→instance handoff check, the missing-handler
+      * rejection) answer inside this window; request handlers always run
+      * after it (the protocol layer defers them to a microtask). An error
+      * sent inside the window is therefore ladder-originated, and an error
+      * sent after it is handler-produced.
+      */
+      _dispatchWindowOpen = false;
+      _requestId;
+      _deferredResponse;
+      _sse;
+      _abortCleanup;
+      _keepAliveMs;
+      constructor(options) {
+        this._classification = options.classification;
+        this._responseMode = options.responseMode ?? "auto";
+        this._keepAliveMs = options.keepAliveMs ?? DEFAULT_SSE_KEEP_ALIVE_MS;
+      }
+      async start() {
+        if (this._started) throw new Error("PerRequestHTTPServerTransport is already started");
+        this._started = true;
+      }
+      /**
+      * Serves the single exchange: delivers the classified message to the
+      * connected server instance and resolves with the HTTP response.
+      *
+      * Throws when called a second time (the transport is strictly
+      * single-use), or before a server has been connected to the transport.
+      * The returned promise rejects with a connection-closed error when the
+      * transport is closed before a response was produced (for example because
+      * the client disconnected).
+      */
+      async handleMessage(message, extra) {
+        if (this._used) throw new Error("PerRequestHTTPServerTransport serves exactly one exchange; construct a new transport per request");
+        if (!this._started || this.onmessage === void 0) throw new Error("PerRequestHTTPServerTransport is not connected: connect a server to this transport before handling a message");
+        if (this._closed) throw new Error("PerRequestHTTPServerTransport is closed");
+        this._used = true;
+        const signal = extra?.request?.signal;
+        if (signal?.aborted) {
+          await this.close();
+          throw new SdkError(SdkErrorCode.ConnectionClosed, "The request was aborted before it could be handled");
+        }
+        const messageExtra = {
+          classification: this._classification,
+          ...extra?.request !== void 0 && { request: extra.request },
+          ...extra?.authInfo !== void 0 && { authInfo: extra.authInfo }
+        };
+        if (isJSONRPCRequest(message)) {
+          this._requestId = message.id;
+          let resolve;
+          let reject;
+          const promise2 = new Promise((promiseResolve, promiseReject) => {
+            resolve = promiseResolve;
+            reject = promiseReject;
+          });
+          this._deferredResponse = {
+            promise: promise2,
+            resolve,
+            reject,
+            settled: false
+          };
+          if (signal !== void 0) {
+            const onAbort = () => void this.close();
+            signal.addEventListener("abort", onAbort, { once: true });
+            this._abortCleanup = () => signal.removeEventListener("abort", onAbort);
+          }
+          this._dispatchWindowOpen = true;
+          try {
+            this.onmessage(message, messageExtra);
+          } finally {
+            this._dispatchWindowOpen = false;
+          }
+          if (this._responseMode === "sse" && !this._closed && !this._deferredResponse.settled) this.upgradeToSse();
+          return promise2;
+        }
+        this.onmessage(message, messageExtra);
+        return new Response(null, { status: 202 });
+      }
+      async send(message, options) {
+        if (this._closed) return;
+        const isResponse = isJSONRPCResultResponse(message) || isJSONRPCErrorResponse(message);
+        const relatedId = isResponse ? message.id : options?.relatedRequestId;
+        if (this._requestId === void 0 || relatedId === void 0 || relatedId !== this._requestId) {
+          if (isResponse) this.onerror?.(/* @__PURE__ */ new Error(`Received a response for an unknown request id: ${String(message.id)}`));
+          return;
+        }
+        if (isResponse) {
+          if (this._terminalDelivered) return;
+          this._terminalDelivered = true;
+          const errorCode = isJSONRPCErrorResponse(message) ? message.error.code : void 0;
+          const ladderStatus = errorCode !== void 0 && (this._dispatchWindowOpen || errorCode === ProtocolErrorCode.MissingRequiredClientCapability) ? LADDER_ERROR_HTTP_STATUS[errorCode] : void 0;
+          if (ladderStatus !== void 0 && this._sse === void 0) {
+            this.settleResponse(Response.json(message, {
+              status: ladderStatus,
+              headers: { "Content-Type": "application/json" }
+            }));
+            queueMicrotask(() => void this.close());
+            return;
+          }
+          if (this._sse !== void 0 || this._responseMode === "sse") {
+            if (this._sse === void 0) this.upgradeToSse();
+            this.writeMessageFrame(message);
+            this.finalizeStream();
+            return;
+          }
+          this.settleResponse(Response.json(message, {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          }));
+          queueMicrotask(() => void this.close());
+          return;
+        }
+        if (this._responseMode === "json") return;
+        if (this._sse === void 0) this.upgradeToSse();
+        this.writeMessageFrame(message);
+      }
+      /**
+      * Writes an SSE comment frame (a keep-alive heartbeat). Dropped when the
+      * exchange is not currently streaming.
+      */
+      writeCommentFrame(comment) {
+        if (this._closed || this._sse === void 0 || this._sse.closed) return;
+        const frame = comment.split("\n").map((line) => `: ${line}`).join("\n");
+        this.writeFrame(`${frame}
+
+`);
+      }
+      async close() {
+        if (this._closed) return;
+        this._closed = true;
+        this._abortCleanup?.();
+        this._abortCleanup = void 0;
+        if (this._sse?.keepAliveTimer !== void 0) clearInterval(this._sse.keepAliveTimer);
+        if (this._sse !== void 0 && !this._sse.closed) {
+          this._sse.closed = true;
+          try {
+            this._sse.controller.close();
+          } catch {
+          }
+        }
+        if (this._deferredResponse !== void 0 && !this._deferredResponse.settled) {
+          this._deferredResponse.settled = true;
+          this._deferredResponse.reject(new SdkError(SdkErrorCode.ConnectionClosed, "Connection closed before a response was produced"));
+        }
+        this.onclose?.();
+      }
+      settleResponse(response) {
+        if (this._deferredResponse === void 0 || this._deferredResponse.settled) return;
+        this._deferredResponse.settled = true;
+        this._deferredResponse.resolve(response);
+      }
+      upgradeToSse() {
+        let controller;
+        const readable = new ReadableStream({
+          start: (streamController) => {
+            controller = streamController;
+          },
+          cancel: () => {
+            this.close();
+          }
+        });
+        this._sse = {
+          controller,
+          encoder: new TextEncoder(),
+          closed: false
+        };
+        this._sse.keepAliveTimer = armSseKeepAlive(this._keepAliveMs, () => this.writeCommentFrame("keepalive"));
+        this.settleResponse(new Response(readable, {
+          status: 200,
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache, no-transform",
+            Connection: "keep-alive",
+            "X-Accel-Buffering": "no"
+          }
+        }));
+      }
+      finalizeStream() {
+        if (this._sse?.keepAliveTimer !== void 0) clearInterval(this._sse.keepAliveTimer);
+        if (this._sse !== void 0 && !this._sse.closed) {
+          this._sse.closed = true;
+          try {
+            this._sse.controller.close();
+          } catch {
+          }
+        }
+        queueMicrotask(() => void this.close());
+      }
+      writeMessageFrame(message) {
+        this.writeFrame(`event: message
+data: ${JSON.stringify(message)}
+
+`);
+      }
+      writeFrame(frame) {
+        if (this._sse === void 0 || this._sse.closed) return;
+        try {
+          this._sse.controller.enqueue(this._sse.encoder.encode(frame));
+        } catch (error62) {
+          this.onerror?.(/* @__PURE__ */ new Error(`Failed to write to the response stream: ${error62}`));
+        }
+      }
+    };
     DEFAULT_LEGACY_SHIM_MAX_ROUNDS = 8;
     DEFAULT_LEGACY_SHIM_ROUND_TIMEOUT_MS = 6e5;
     LegacyInputRequiredShim = class {
@@ -33214,6 +33932,7 @@ var init_mcp_DXXb3Vv3 = __esm({
       _requestStateVerify;
       _inputRequiredServing;
       _legacyShim;
+      _boundFromTransport = false;
       /** Lazily-built legacy shim; the loop lives in legacyInputRequiredShim.ts behind a narrow host contract. */
       _legacyInputRequiredShim() {
         return this._legacyShim ??= new LegacyInputRequiredShim({
@@ -33249,6 +33968,20 @@ var init_mcp_DXXb3Vv3 = __esm({
         this.setNotificationHandler("notifications/initialized", () => this.oninitialized?.());
         if (modernProtocolVersions(this._supportedProtocolVersions).length > 0) this.setRequestHandler("server/discover", () => this._ondiscover());
         if (this._capabilities.logging) this._registerLoggingHandler();
+      }
+      /** Attaches to the given transport; rejects while this instance is connected to another one. */
+      async connect(transport) {
+        if (this.transport !== void 0) throw new SdkError(SdkErrorCode.AlreadyConnected, "Use a separate Server instance per connection: this instance is already connected to a transport. To connect it to a new transport, call close() first.");
+        if (this._boundFromTransport) {
+          this._boundFromTransport = false;
+          this._negotiatedProtocolVersion = void 0;
+        }
+        const revision = perRequestClassificationOf(transport)?.revision;
+        if (revision !== void 0 && !this._servedModernEra() && SUPPORTED_MODERN_PROTOCOL_VERSIONS.includes(revision) && modernProtocolVersions(this._supportedProtocolVersions).includes(revision)) {
+          this._negotiatedProtocolVersion = revision;
+          this._boundFromTransport = true;
+        }
+        await super.connect(transport);
       }
       /**
       * Registers the built-in `logging/setLevel` request handler.
@@ -33573,8 +34306,8 @@ var init_mcp_DXXb3Vv3 = __esm({
       * @deprecated Read client identity from the per-request handler context instead: on
       * 2026-07-28 (per-request envelope) requests `ctx.mcpReq.envelope` carries the client's
       * declared capabilities, while on 2025-era connections this accessor keeps returning the
-      * `initialize`-scoped value. The accessor remains functional — instances serving the
-      * 2026-07-28 era are backfilled per request from the validated envelope.
+      * `initialize`-scoped value. The accessor remains functional where `createMcpHandler`
+      * serves the 2026-07-28 era: it backfills it per request from the validated envelope.
       */
       getClientCapabilities() {
         return this._clientCapabilities;
@@ -33585,8 +34318,8 @@ var init_mcp_DXXb3Vv3 = __esm({
       * @deprecated Read client identity from the per-request handler context instead: on
       * 2026-07-28 (per-request envelope) requests `ctx.mcpReq.envelope` carries the client's
       * name and version, while on 2025-era connections this accessor keeps returning the
-      * `initialize`-scoped value. The accessor remains functional — instances serving the
-      * 2026-07-28 era are backfilled per request from the validated envelope.
+      * `initialize`-scoped value. The accessor remains functional where `createMcpHandler`
+      * serves the 2026-07-28 era: it backfills it per request from the validated envelope.
       */
       getClientVersion() {
         return this._clientVersion;
@@ -33805,16 +34538,12 @@ var init_mcp_DXXb3Vv3 = __esm({
       * The underlying {@linkcode Server} instance, useful for advanced operations like sending notifications.
       */
       server;
+      _maxToolInputElements;
       _registeredResources = {};
       _registeredResourceTemplates = {};
       _registeredTools = {};
       _registeredPrompts = {};
-      /**
-      * Per-tool JSON-converted `inputSchema`, memoized so the SEP-2243
-      * registration-time scan and the pre-dispatch validation step share one
-      * conversion instead of paying it twice per request under the
-      * per-request-factory `createMcpHandler` model.
-      */
+      /** Per-tool JSON-converted `inputSchema`, filled on first use by `toolInputSchemaJson()`. */
       _toolInputSchemaJson = {};
       /**
       * The JSON-serialized `inputSchema` of a registered tool, or `undefined`
@@ -33839,6 +34568,7 @@ var init_mcp_DXXb3Vv3 = __esm({
       }
       constructor(serverInfo, options) {
         this.server = new Server(serverInfo, options);
+        this._maxToolInputElements = resolveMaxToolInputElements(options?.maxToolInputElements);
         if (options?.capabilities?.tools) this.setToolRequestHandlers();
         if (options?.capabilities?.resources) this.setResourceRequestHandlers();
         if (options?.capabilities?.prompts) this.setPromptRequestHandlers();
@@ -33856,6 +34586,7 @@ var init_mcp_DXXb3Vv3 = __esm({
       * ```
       */
       async connect(transport) {
+        if (supportsScopeChallengeResolver(transport)) transport.setScopeChallengeResolver((context) => this.resolveScopeChallenge(context));
         return await this.server.connect(transport);
       }
       /**
@@ -33864,6 +34595,41 @@ var init_mcp_DXXb3Vv3 = __esm({
       async close() {
         await this.server.close();
       }
+      /** @internal */
+      resolveScopeChallenge = (context) => {
+        switch (context.request.method) {
+          case "tools/call": {
+            const toolName = context.request.params?.name;
+            if (typeof toolName !== "string") return;
+            const tool = this._registeredTools[toolName];
+            if (tool === void 0 || !tool.enabled) return;
+            return tool.scopeChallenge?.(context);
+          }
+          case "resources/read": {
+            const resourceUri = context.request.params?.uri;
+            if (typeof resourceUri !== "string") return;
+            let uri;
+            try {
+              uri = new URL(resourceUri);
+            } catch {
+              return;
+            }
+            const resource = this._registeredResources[uri.toString()];
+            if (resource !== void 0) return resource.enabled ? resource.scopeChallenge?.(context) : void 0;
+            for (const template of Object.values(this._registeredResourceTemplates)) if (template.resourceTemplate.uriTemplate.match(uri.toString())) return template.enabled ? template.scopeChallenge?.(context) : void 0;
+            return;
+          }
+          case "prompts/get": {
+            const promptName = context.request.params?.name;
+            if (typeof promptName !== "string") return;
+            const prompt = this._registeredPrompts[promptName];
+            if (prompt === void 0 || !prompt.enabled) return;
+            return prompt.scopeChallenge?.(context);
+          }
+          default:
+            return;
+        }
+      };
       _toolHandlersInitialized = false;
       setToolRequestHandlers() {
         if (this._toolHandlersInitialized) return;
@@ -33875,7 +34641,7 @@ var init_mcp_DXXb3Vv3 = __esm({
             name,
             title: tool.title,
             description: tool.description,
-            inputSchema: tool.inputSchema ? standardSchemaToJsonSchema(tool.inputSchema, "input") : EMPTY_OBJECT_JSON_SCHEMA,
+            inputSchema: tool.inputSchema ? convertListedInputSchema(name, tool.inputSchema) : EMPTY_OBJECT_JSON_SCHEMA,
             annotations: tool.annotations,
             icons: tool.icons,
             execution: tool.execution,
@@ -33920,6 +34686,7 @@ var init_mcp_DXXb3Vv3 = __esm({
       * Validates tool input arguments against the tool's input schema.
       */
       async validateToolInput(tool, args, toolName) {
+        if (this._maxToolInputElements !== void 0 && toolInputElementCount(args, this._maxToolInputElements) > this._maxToolInputElements) throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Invalid arguments for tool ${toolName}: arguments contain more than the maximum of ${this._maxToolInputElements} elements`);
         if (!tool.inputSchema) return;
         const parseResult = await validateStandardSchema(tool.inputSchema, args ?? {});
         if (!parseResult.success) throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Input validation error: Invalid arguments for tool ${toolName}: ${parseResult.error}`);
@@ -34030,7 +34797,10 @@ var init_mcp_DXXb3Vv3 = __esm({
           }
           for (const template of Object.values(this._registeredResourceTemplates)) {
             const variables = template.resourceTemplate.uriTemplate.match(uri.toString());
-            if (variables) return attachCacheHintFallback(await template.readCallback(uri, variables, ctx), template.cacheHint);
+            if (variables) {
+              if (!template.enabled) throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Resource template ${template.resourceTemplate.uriTemplate} disabled`);
+              return attachCacheHintFallback(await template.readCallback(uri, variables, ctx), template.cacheHint);
+            }
           }
           throw new ResourceNotFoundError(request.params.uri);
         });
@@ -34061,36 +34831,32 @@ var init_mcp_DXXb3Vv3 = __esm({
         this._promptHandlersInitialized = true;
       }
       registerResource(name, uriOrTemplate, config2, readCallback) {
-        const cacheHint = config2.cacheHint;
-        let metadata = config2;
-        if (cacheHint !== void 0) {
-          assertValidCacheHint(cacheHint, `resource ${name}`);
-          const rest = { ...config2 };
-          delete rest.cacheHint;
-          metadata = rest;
-        }
+        const { cacheHint, scopeChallenge, ...resourceMetadata } = config2;
+        const metadata = resourceMetadata;
+        if (cacheHint !== void 0) assertValidCacheHint(cacheHint, `resource ${name}`);
         if (typeof uriOrTemplate === "string") {
           if (this._registeredResources[uriOrTemplate]) throw new Error(`Resource ${uriOrTemplate} is already registered`);
-          const registeredResource = this._createRegisteredResource(name, config2.title, uriOrTemplate, metadata, readCallback);
+          const registeredResource = this._createRegisteredResource(name, config2.title, uriOrTemplate, metadata, scopeChallenge, readCallback);
           if (cacheHint !== void 0) registeredResource.cacheHint = cacheHint;
           this.setResourceRequestHandlers();
           this.sendResourceListChanged();
           return registeredResource;
         } else {
           if (this._registeredResourceTemplates[name]) throw new Error(`Resource template ${name} is already registered`);
-          const registeredResourceTemplate = this._createRegisteredResourceTemplate(name, config2.title, uriOrTemplate, metadata, readCallback);
+          const registeredResourceTemplate = this._createRegisteredResourceTemplate(name, config2.title, uriOrTemplate, metadata, scopeChallenge, readCallback);
           if (cacheHint !== void 0) registeredResourceTemplate.cacheHint = cacheHint;
           this.setResourceRequestHandlers();
           this.sendResourceListChanged();
           return registeredResourceTemplate;
         }
       }
-      _createRegisteredResource(name, title, uri, metadata, readCallback) {
+      _createRegisteredResource(name, title, uri, metadata, scopeChallenge, readCallback) {
         const registeredResource = {
           name,
           title,
           metadata,
           readCallback,
+          scopeChallenge,
           enabled: true,
           disable: () => registeredResource.update({ enabled: false }),
           enable: () => registeredResource.update({ enabled: true }),
@@ -34101,9 +34867,16 @@ var init_mcp_DXXb3Vv3 = __esm({
               if (updates.uri) this._registeredResources[updates.uri] = registeredResource;
             }
             if (updates.name !== void 0) registeredResource.name = updates.name;
-            if (updates.title !== void 0) registeredResource.title = updates.title;
             if (updates.metadata !== void 0) registeredResource.metadata = updates.metadata;
+            if (updates.title !== void 0) {
+              registeredResource.title = updates.title;
+              registeredResource.metadata = {
+                ...registeredResource.metadata,
+                title: updates.title
+              };
+            }
             if (updates.callback !== void 0) registeredResource.readCallback = updates.callback;
+            if (updates.scopeChallenge !== void 0) registeredResource.scopeChallenge = updates.scopeChallenge === null ? void 0 : updates.scopeChallenge;
             if (updates.enabled !== void 0) registeredResource.enabled = updates.enabled;
             this.sendResourceListChanged();
           }
@@ -34111,12 +34884,13 @@ var init_mcp_DXXb3Vv3 = __esm({
         this._registeredResources[uri] = registeredResource;
         return registeredResource;
       }
-      _createRegisteredResourceTemplate(name, title, template, metadata, readCallback) {
+      _createRegisteredResourceTemplate(name, title, template, metadata, scopeChallenge, readCallback) {
         const registeredResourceTemplate = {
           resourceTemplate: template,
           title,
           metadata,
           readCallback,
+          scopeChallenge,
           enabled: true,
           disable: () => registeredResourceTemplate.update({ enabled: false }),
           enable: () => registeredResourceTemplate.update({ enabled: true }),
@@ -34126,10 +34900,17 @@ var init_mcp_DXXb3Vv3 = __esm({
               delete this._registeredResourceTemplates[name];
               if (updates.name) this._registeredResourceTemplates[updates.name] = registeredResourceTemplate;
             }
-            if (updates.title !== void 0) registeredResourceTemplate.title = updates.title;
             if (updates.template !== void 0) registeredResourceTemplate.resourceTemplate = updates.template;
             if (updates.metadata !== void 0) registeredResourceTemplate.metadata = updates.metadata;
+            if (updates.title !== void 0) {
+              registeredResourceTemplate.title = updates.title;
+              registeredResourceTemplate.metadata = {
+                ...registeredResourceTemplate.metadata,
+                title: updates.title
+              };
+            }
             if (updates.callback !== void 0) registeredResourceTemplate.readCallback = updates.callback;
+            if (updates.scopeChallenge !== void 0) registeredResourceTemplate.scopeChallenge = updates.scopeChallenge === null ? void 0 : updates.scopeChallenge;
             if (updates.enabled !== void 0) registeredResourceTemplate.enabled = updates.enabled;
             this.sendResourceListChanged();
           }
@@ -34139,7 +34920,7 @@ var init_mcp_DXXb3Vv3 = __esm({
         if (Array.isArray(variableNames) && variableNames.some((v) => !!template.completeCallback(v))) this.setCompletionRequestHandler();
         return registeredResourceTemplate;
       }
-      _createRegisteredPrompt(name, title, description, argsSchema, callback, icons, _meta) {
+      _createRegisteredPrompt(name, title, description, argsSchema, callback, icons, scopeChallenge, _meta) {
         let currentArgsSchema = argsSchema;
         let currentCallback = callback;
         const registeredPrompt = {
@@ -34147,6 +34928,7 @@ var init_mcp_DXXb3Vv3 = __esm({
           description,
           argsSchema,
           icons,
+          scopeChallenge,
           _meta,
           handler: createPromptHandler(name, argsSchema, callback),
           enabled: true,
@@ -34161,6 +34943,7 @@ var init_mcp_DXXb3Vv3 = __esm({
             if (updates.title !== void 0) registeredPrompt.title = updates.title;
             if (updates.description !== void 0) registeredPrompt.description = updates.description;
             if (updates.icons !== void 0) registeredPrompt.icons = updates.icons;
+            if (updates.scopeChallenge !== void 0) registeredPrompt.scopeChallenge = updates.scopeChallenge === null ? void 0 : updates.scopeChallenge;
             if (updates._meta !== void 0) registeredPrompt._meta = updates._meta;
             let needsHandlerRegen = false;
             if (updates.argsSchema !== void 0) {
@@ -34188,25 +34971,25 @@ var init_mcp_DXXb3Vv3 = __esm({
         }
         return registeredPrompt;
       }
-      _createRegisteredTool(name, title, description, inputSchema, outputSchema, annotations, icons, execution, _meta, handler) {
+      _createRegisteredTool(name, title, description, inputSchema, outputSchema, annotations, icons, execution, scopeChallenge, _meta, handler) {
         validateAndWarnToolName(name);
-        if (inputSchema !== void 0) try {
-          const json2 = standardSchemaToJsonSchema(inputSchema, "input");
-          this._toolInputSchemaJson[name] = json2;
-          const scan = scanXMcpHeaderDeclarations(json2);
-          if (!scan.valid) console.warn(`[mcp-sdk] tool '${name}' carries an invalid x-mcp-header declaration and will be excluded by conforming Streamable HTTP clients: ${scan.reason}`);
-        } catch {
-        }
         let currentHandler = handler;
+        let outputSchemaJson;
         const registeredTool = {
           title,
           description,
           inputSchema,
           outputSchema,
-          outputSchemaJson: convertOutputSchemaJson(outputSchema),
+          get outputSchemaJson() {
+            return outputSchemaJson ??= convertOutputSchemaJson(registeredTool.outputSchema);
+          },
+          set outputSchemaJson(value) {
+            outputSchemaJson = value;
+          },
           annotations,
           icons,
           execution,
+          scopeChallenge,
           _meta,
           handler,
           executor: createToolExecutor(inputSchema, handler),
@@ -34245,6 +35028,7 @@ var init_mcp_DXXb3Vv3 = __esm({
             }
             if (updates.annotations !== void 0) registeredTool.annotations = updates.annotations;
             if (updates.icons !== void 0) registeredTool.icons = updates.icons;
+            if (updates.scopeChallenge !== void 0) registeredTool.scopeChallenge = updates.scopeChallenge === null ? void 0 : updates.scopeChallenge;
             if (updates._meta !== void 0) registeredTool._meta = updates._meta;
             if (updates.enabled !== void 0) registeredTool.enabled = updates.enabled;
             this.sendToolListChanged();
@@ -34257,13 +35041,13 @@ var init_mcp_DXXb3Vv3 = __esm({
       }
       registerTool(name, config2, cb) {
         if (this._registeredTools[name]) throw new Error(`Tool ${name} is already registered`);
-        const { title, description, inputSchema, outputSchema, annotations, icons, _meta } = config2;
-        return this._createRegisteredTool(name, title, description, normalizeRawShapeSchema(inputSchema), normalizeRawShapeSchema(outputSchema), annotations, icons, void 0, _meta, cb);
+        const { title, description, inputSchema, outputSchema, annotations, icons, scopeChallenge, _meta } = config2;
+        return this._createRegisteredTool(name, title, description, normalizeRawShapeSchema(inputSchema), normalizeRawShapeSchema(outputSchema), annotations, icons, void 0, scopeChallenge, _meta, cb);
       }
       registerPrompt(name, config2, cb) {
         if (this._registeredPrompts[name]) throw new Error(`Prompt ${name} is already registered`);
-        const { title, description, argsSchema, icons, _meta } = config2;
-        const registeredPrompt = this._createRegisteredPrompt(name, title, description, normalizeRawShapeSchema(argsSchema), cb, icons, _meta);
+        const { title, description, argsSchema, icons, scopeChallenge, _meta } = config2;
+        const registeredPrompt = this._createRegisteredPrompt(name, title, description, normalizeRawShapeSchema(argsSchema), cb, icons, scopeChallenge, _meta);
         this.setPromptRequestHandlers();
         this.sendPromptListChanged();
         return registeredPrompt;
@@ -34327,22 +35111,35 @@ var init_mcp_DXXb3Vv3 = __esm({
   }
 });
 
+// node_modules/@modelcontextprotocol/server/dist/listenRouter-Bartj63y.mjs
+var init_listenRouter_Bartj63y = __esm({
+  "node_modules/@modelcontextprotocol/server/dist/listenRouter-Bartj63y.mjs"() {
+    init_mcp_oHn3ureC();
+    init_src_DdvbAHrR();
+  }
+});
+
 // node_modules/@modelcontextprotocol/server/dist/index.mjs
+var DEFAULT_MAX_REQUEST_BODY_SIZE;
 var init_dist = __esm({
   "node_modules/@modelcontextprotocol/server/dist/index.mjs"() {
-    init_mcp_DXXb3Vv3();
-    init_src_CX2iR2pK();
+    init_mcp_oHn3ureC();
+    init_src_DdvbAHrR();
+    init_listenRouter_Bartj63y();
     init_shimsNode();
+    DEFAULT_MAX_REQUEST_BODY_SIZE = 4 * 1024 * 1024;
   }
 });
 
 // node_modules/@modelcontextprotocol/server/dist/stdio.mjs
-var StdioServerTransport;
+var swallowsErrorsAfterClose, StdioServerTransport;
 var init_stdio = __esm({
   "node_modules/@modelcontextprotocol/server/dist/stdio.mjs"() {
-    init_mcp_DXXb3Vv3();
-    init_src_CX2iR2pK();
+    init_mcp_oHn3ureC();
+    init_src_DdvbAHrR();
+    init_listenRouter_Bartj63y();
     init_shimsNode();
+    swallowsErrorsAfterClose = /* @__PURE__ */ Symbol("swallowsErrorsAfterClose");
     StdioServerTransport = class {
       _readBuffer;
       _started = false;
@@ -34369,7 +35166,12 @@ var init_stdio = __esm({
         this.onerror?.(error62);
       };
       _onstdouterror = (error62) => {
+        if (this._closed) return;
         this.onerror?.(error62);
+        this.close().catch(() => {
+        });
+      };
+      _onstdinclose = () => {
         this.close().catch(() => {
         });
       };
@@ -34379,8 +35181,12 @@ var init_stdio = __esm({
       async start() {
         if (this._started) throw new Error("StdioServerTransport already started! If using Server class, note that connect() calls start() automatically.");
         this._started = true;
+        for (const listener of this._stdout.listeners("error")) if (listener[swallowsErrorsAfterClose]) this._stdout.off("error", listener);
+        if (this._stdin.readableEnded || this._stdin.destroyed) setImmediate(this._onstdinclose);
         this._stdin.on("data", this._ondata);
         this._stdin.on("error", this._onerror);
+        this._stdin.on("end", this._onstdinclose);
+        this._stdin.on("close", this._onstdinclose);
         this._stdout.on("error", this._onstdouterror);
       }
       processReadBuffer() {
@@ -34397,7 +35203,9 @@ var init_stdio = __esm({
         this._closed = true;
         this._stdin.off("data", this._ondata);
         this._stdin.off("error", this._onerror);
-        this._stdout.off("error", this._onstdouterror);
+        this._stdin.off("end", this._onstdinclose);
+        this._stdin.off("close", this._onstdinclose);
+        this._onstdouterror[swallowsErrorsAfterClose] = true;
         if (this._stdin.listenerCount("data") === 0) this._stdin.pause();
         this._readBuffer.clear();
         this.onclose?.();
@@ -34497,15 +35305,18 @@ function normalizeFilename(filename) {
 function filesFromContent(content, filename) {
   return [{ name: normalizeFilename(filename) ?? "index.html", data: Buffer.from(content, "utf8") }];
 }
-async function filesFromPath(input2, { excludePrivate = false } = {}) {
+async function filesFromPath(input2, { excludePrivate = true } = {}) {
   const abs = path.resolve(input2);
   const st = await lstat(abs);
   if (st.isFile()) return [{ name: path.basename(abs), data: await readFile(abs) }];
   if (!st.isDirectory()) throw new Error(`Not a file or directory: ${input2}`);
+  if (excludePrivate && isPrivateName(path.basename(abs))) {
+    throw new Error(`Refusing to publish private directory: ${input2}`);
+  }
   const out = [];
   async function walk(dir, prefix) {
     for (const e of await readdir(dir, { withFileTypes: true })) {
-      if (excludePrivate && ([".git", "node_modules", ".ssh", ".aws"].includes(e.name) || e.name.startsWith(".env"))) continue;
+      if (excludePrivate && isPrivateName(e.name)) continue;
       const rel = prefix ? `${prefix}/${e.name}` : e.name;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) await walk(full, rel);
@@ -34516,10 +35327,11 @@ async function filesFromPath(input2, { excludePrivate = false } = {}) {
   if (!out.length) throw new Error(`Directory is empty: ${input2}`);
   return out;
 }
-var DEFAULT_BASE;
+var DEFAULT_BASE, isPrivateName;
 var init_upload = __esm({
   "upload.js"() {
     DEFAULT_BASE = "https://plopino.com";
+    isPrivateName = (name) => [".git", "node_modules", ".ssh", ".aws"].includes(name) || name.startsWith(".env");
   }
 });
 
@@ -34609,7 +35421,7 @@ var init_session = __esm({
 var SERVER_VERSION, INSTRUCTIONS, TOOL_ANNOTATIONS, UPDATE_PARAM_DESC, TOKEN_HELP, TOOLS;
 var init_tool_defs = __esm({
   "tool-defs.js"() {
-    SERVER_VERSION = "0.3.1";
+    SERVER_VERSION = "0.3.2";
     INSTRUCTIONS = 'Plopino turns content into a public link \u2014 use it whenever the user asks to share, send, publish, or "give me a link to" something. When you have the content itself in hand: call publish_page \u2014 an HTML page (dashboard, report, chart, or single page you just generated), or a Markdown / CSV / code / data document, passing the filename so it renders as itself. Anything already on disk \u2014 a directory with sibling files, or any file: call publish_path. Documents are first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline \u2014 the recipient opens a link and never downloads a file. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account; every call returns a public URL that opens on any device. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
     TOOL_ANNOTATIONS = {
       readOnlyHint: false,
@@ -34637,7 +35449,7 @@ var init_tool_defs = __esm({
         title: "Publish a local file or folder and get a link",
         description: "Publish a local file, a zip, or a whole directory to a public URL, preserving the directory structure. Use this when the page needs sibling files (CSS, JS, images) \u2014 write them into a directory first, then publish that directory. It is also the way to share any document: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, and images and video display inline \u2014 the recipient opens a link instead of downloading a file. (PowerPoint files publish and download fine but have no rendered preview.)",
         params: {
-          path: "Absolute path to a file or directory on this machine. A directory is uploaded recursively with its structure preserved (symbolic links are skipped, so the upload cannot escape the directory); a zip archive is unpacked server-side.",
+          path: "Absolute path to a file or directory on this machine. A directory is uploaded recursively with its structure preserved; symbolic links and common private paths (.git, .env*, node_modules, .ssh, .aws) are skipped. An explicitly selected single file is uploaded as requested, so never select credentials or other secrets. A zip archive is unpacked server-side.",
           update_url: UPDATE_PARAM_DESC
         }
       },
@@ -34751,7 +35563,7 @@ Private claim link for the publisher only (never append it to the public share U
     }, async ({ path: p, update_url: updateUrl }) => {
       try {
         const { boardId } = resolveTarget(updateUrl);
-        const files = await filesFromPath(p);
+        const files = await filesFromPath(p, { excludePrivate: true });
         const data = await publishWithIdentity(files, boardId);
         const owned = data.anonymous === false || !!data.meta?.owner || !!TOKEN;
         return ok(
@@ -34971,10 +35783,258 @@ if (process.argv.length === 2) {
 }
 /*! Bundled license information:
 
-@modelcontextprotocol/server/dist/src-CX2iR2pK.mjs:
+@modelcontextprotocol/server/dist/src-DdvbAHrR.mjs:
   (*!
   * content-type
   * Copyright(c) 2015 Douglas Christopher Wilson
   * MIT Licensed
   *)
+*/
+/*!
+Bundled components: @modelcontextprotocol/server, @modelcontextprotocol/core
+
+The MCP project is undergoing a licensing transition from the MIT License to the Apache License, Version 2.0 ("Apache-2.0"). All new code and specification contributions to the project are licensed under Apache-2.0. Documentation contributions (excluding specifications) are licensed under CC-BY-4.0.
+
+Contributions for which relicensing consent has been obtained are licensed under Apache-2.0. Contributions made by authors who originally licensed their work under the MIT License and who have not yet granted explicit permission to relicense remain licensed under the MIT License.
+
+No rights beyond those granted by the applicable original license are conveyed for such contributions.
+
+---
+
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to the Licensor for inclusion in the Work by the copyright
+      owner or by an individual or Legal Entity authorized to submit on behalf
+      of the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+---
+
+MIT License
+
+Copyright (c) 2024-2025 Model Context Protocol a Series of LF Projects, LLC.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+Creative Commons Attribution 4.0 International (CC-BY-4.0)
+
+Documentation in this project (excluding specifications) is licensed under
+CC-BY-4.0. See https://creativecommons.org/licenses/by/4.0/legalcode for
+the full license text.
+
+
+---
+
+Bundled components: zod
+
+MIT License
+
+Copyright (c) 2025 Colin McDonnell
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 */

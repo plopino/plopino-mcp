@@ -64,6 +64,36 @@ test('filesFromPath：目录递归展开，name 是相对路径（接口按它�
   assert.deepEqual(names, ['assets/img/a.png', 'assets/s.css', 'index.html']);
 });
 
+test('filesFromPath：目录默认排除私密文件，调用方漏传选项也不能带出凭证', async (t) => {
+  const d = await tmp();
+  t.after(() => rm(d, { recursive: true, force: true }));
+  const privateFiles = [
+    '.env', '.env.production', '.ssh/id_ed25519', '.aws/credentials',
+    '.git/config', 'node_modules/pkg/index.js',
+  ];
+  for (const name of privateFiles) {
+    await mkdir(path.dirname(path.join(d, name)), { recursive: true });
+    await writeFile(path.join(d, name), 'must not be published');
+  }
+  await mkdir(path.join(d, '.well-known'));
+  await writeFile(path.join(d, '.well-known/security.txt'), 'public');
+  await writeFile(path.join(d, 'index.html'), '<h1>public</h1>');
+
+  const names = (await filesFromPath(d)).map((f) => f.name).sort();
+  assert.deepEqual(names, ['.well-known/security.txt', 'index.html']);
+});
+
+test('filesFromPath：敏感目录本身作为输入时也要拒绝', async (t) => {
+  const d = await tmp();
+  t.after(() => rm(d, { recursive: true, force: true }));
+  for (const name of ['.ssh', '.aws', '.git', 'node_modules', '.env', '.env.local']) {
+    const dir = path.join(d, name);
+    await mkdir(dir);
+    await writeFile(path.join(dir, 'secret.txt'), 'must not be published');
+    await assert.rejects(() => filesFromPath(dir), /private directory/, name);
+  }
+});
+
 test('filesFromPath：符号链接跳过（跟随可能绕出目录树）', async (t) => {
   const d = await tmp();
   const outside = await tmp();
@@ -296,16 +326,16 @@ test('dist 的单文件发行版与源码同步（陈旧的分发件比没有更
   try { esbuild = await import('esbuild'); } catch { t.skip('未安装 esbuild（cd mcp && npm install），跳过'); return; }
 
   const out = path.join(DIR, '..', 'dist', 'plopino-mcp.mjs');
-  // absWorkingDir 必须钉死：esbuild 会把每个模块的路径写成**相对于 cwd** 的注释，
-  // 从仓库根目录构建出来的产物与从 mcp/ 构建的逐字节不同（`mcp/index.js` vs `index.js`）。
-  // 不钉死的话这个测试会因为"在哪个目录跑"而时红时绿。
-  const built = await esbuild.build({
-    absWorkingDir: path.join(DIR, '..'),
-    entryPoints: ['index.js'], bundle: true, platform: 'node', format: 'esm', target: 'node20', write: false,
-  });
+  // 构建参数与 npm run build 共用，避免测试自己维护的一份悄悄漂移。
+  const { buildOptions } = await import('../build.mjs');
+  const built = await esbuild.build(await buildOptions({ write: false }));
   const fresh = built.outputFiles[0].text;
   const onDisk = await readFile(out, 'utf8').catch(() => null);
   assert.ok(onDisk, 'dist/plopino-mcp.mjs 不存在 —— 跑 npm run build');
+  const sdkLicense = await readFile(path.join(DIR, '..', 'node_modules', '@modelcontextprotocol', 'server', 'LICENSE'), 'utf8');
+  assert.ok(onDisk.includes(sdkLicense), '独立下载件必须带有 bundled MCP SDK 的完整许可证文本');
+  const zodLicense = await readFile(path.join(DIR, '..', 'node_modules', 'zod', 'LICENSE'), 'utf8');
+  assert.ok(onDisk.includes(zodLicense), '独立下载件必须带有 bundled Zod 的完整 MIT 许可证文本');
   assert.equal(onDisk, fresh, 'dist/plopino-mcp.mjs 与源码不一致 —— 跑 npm run build');
 
   // 自包含：用户那边没有 node_modules，任何外部 import 都会让它在对方机器上崩

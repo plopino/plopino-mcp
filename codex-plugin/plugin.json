@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "plopino",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Publish pages, documents, and multi-file bundles from Codex or ChatGPT to public Plopino links.",
   "author": {
     "name": "Plopino",
@@ -96,7 +96,7 @@
         }
       },
       "publication": {
-        "release_notes": "Adds self-hosted OAuth 2.1 for Plopino remote MCP, including public-client DCR, PKCE, rotating refresh tokens, and mixed anonymous or account publishing. Also fixes persistent anonymous identity across MCP publishes and adds Claude Code and Codex distribution packages."
+        "release_notes": "Security maintenance for the OAuth-enabled remote MCP and local stdio server: updates MCP and validation dependencies, and excludes common credential files from local directory publishing by default."
       }
     }
   }

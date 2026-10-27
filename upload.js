@@ -84,16 +84,23 @@ export function filesFromContent(content, filename) {
 }
 
 // 本地路径 → 文件列表。目录递归展开，name 取相对路径。
-export async function filesFromPath(input, { excludePrivate = false } = {}) {
+const isPrivateName = (name) => ['.git', 'node_modules', '.ssh', '.aws'].includes(name)
+  || name.startsWith('.env');
+
+export async function filesFromPath(input, { excludePrivate = true } = {}) {
   const abs = path.resolve(input);
   const st = await lstat(abs);
   if (st.isFile()) return [{ name: path.basename(abs), data: await readFile(abs) }];
   if (!st.isDirectory()) throw new Error(`Not a file or directory: ${input}`);
+  // readdir 只能过滤孩子；输入根本身是 .ssh/.aws 等目录时也要在这里拦住。
+  if (excludePrivate && isPrivateName(path.basename(abs))) {
+    throw new Error(`Refusing to publish private directory: ${input}`);
+  }
 
   const out = [];
   async function walk(dir, prefix) {
     for (const e of await readdir(dir, { withFileTypes: true })) {
-      if (excludePrivate && (['.git', 'node_modules', '.ssh', '.aws'].includes(e.name) || e.name.startsWith('.env'))) continue;
+      if (excludePrivate && isPrivateName(e.name)) continue;
       const rel = prefix ? `${prefix}/${e.name}` : e.name;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) await walk(full, rel);

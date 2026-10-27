@@ -1,6 +1,6 @@
 {
   "name": "plopino",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "mcpName": "io.github.plopino/plopino-mcp",
   "description": "MCP server: publish a page, a document, a file, or a folder to Plopino and get a public URL — documents render as readable pages.",
   "type": "module",
@@ -22,6 +22,7 @@
   },
   "files": [
     "index.js",
+    "build.mjs",
     "mcp-server.js",
     "cli.js",
     "session.js",
@@ -45,12 +46,12 @@
   },
   "homepage": "https://plopino.com",
   "dependencies": {
-    "@modelcontextprotocol/server": "^2.0.0",
-    "zod": "^4.6.5"
+    "@modelcontextprotocol/server": "^2.4.0",
+    "zod": "^4.6.7"
   },
   "scripts": {
     "test": "node --test",
-    "build": "esbuild index.js --bundle --platform=node --format=esm --target=node20 --outfile=dist/plopino-mcp.mjs --log-level=warning"
+    "build": "node build.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"

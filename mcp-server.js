@@ -122,7 +122,7 @@ server.registerTool('publish_path', {
 }, async ({ path: p, update_url: updateUrl }) => {
   try {
     const { boardId } = resolveTarget(updateUrl);
-    const files = await filesFromPath(p);
+    const files = await filesFromPath(p, { excludePrivate: true });
     const data = await publishWithIdentity(files, boardId);
     const owned = data.anonymous === false || !!data.meta?.owner || !!TOKEN;
     return ok(data.url, boardId
