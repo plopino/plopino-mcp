@@ -27,6 +27,7 @@ export async function publishFiles(files, { baseUrl = DEFAULT_BASE, token = '', 
       // MCP 渠道的效果才和网页上传分得开。node 的默认 UA 是 "node"，认不出
       // 也名不正——不能把别人的 Node 程序误标成我们。
       'User-Agent': source === 'cli' ? 'plopino-cli' : 'plopino-mcp',
+      ...acquisitionHeaders(),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: form,
@@ -50,6 +51,15 @@ export async function publishFiles(files, { baseUrl = DEFAULT_BASE, token = '', 
     throw new Error(msg);
   }
   return { ...data, url };
+}
+
+// Optional, explicit tutorial provenance; never infer it from the client name.
+export function acquisitionHeaders(env = process.env) {
+  const tag = v => typeof v === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(v) ? v : null;
+  const channel = tag(env.PLOPINO_ACQUISITION_SOURCE);
+  if (!channel) return {};
+  return { 'X-Plopino-Acquisition': encodeURIComponent(JSON.stringify({ channel,
+    campaign: tag(env.PLOPINO_ACQUISITION_CAMPAIGN), content: tag(env.PLOPINO_ACQUISITION_CONTENT) })) };
 }
 
 // 从之前返回的链接里取出展板 id。agent 手里通常只有 URL、没有 id，

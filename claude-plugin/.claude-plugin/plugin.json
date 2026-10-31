@@ -1,7 +1,7 @@
 {
   "name": "plopino",
   "displayName": "Plopino",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Publish pages, documents, and multi-file bundles from Claude to public Plopino links.",
   "author": {
     "name": "Plopino",

@@ -267,12 +267,23 @@ PLOPINO_BASE_URL=https://plopino.com node index.js
 
 ## Privacy Policy
 
+### Optional acquisition labels
+
+If you want to tell Plopino which tutorial introduced the tool, set
+`PLOPINO_ACQUISITION_SOURCE` (for example `devto`), optionally with
+`PLOPINO_ACQUISITION_CAMPAIGN` and `PLOPINO_ACQUISITION_CONTENT`.
+These labels are sent with publish requests and stored separately from browser
+referrals, with their capture time. They do not affect publishing or login.
+Use only letters, digits, underscores and hyphens, at most 64 characters;
+start with a letter or digit. Do not put secrets, URLs or personal data in labels.
+Leave them unset to send no acquisition labels. Supported by CLI and stdio MCP.
+
 Full policy: **https://plopino.com/privacy**
 
-- **What is collected.** Only what publishing requires: the file contents and file names you
+- **What is collected.** Optional acquisition labels are described above. Publishing sends the file contents and file names you
   pass to a tool, the destination URL, and — for anonymous publishes — the requesting IP
   address (used for the daily rate limit). The MCP server itself collects nothing and sends
-  no telemetry; it runs locally and logs only to stderr. Anonymous publishing writes the local
+  no background telemetry; it runs locally and logs only to stderr. Anonymous publishing writes the local
   identity cookie described above.
 - **How it is used and stored.** Uploaded content is stored on Plopino's servers and served
   from the returned public link. A `PLOPINO_TOKEN` is stored locally in your MCP client

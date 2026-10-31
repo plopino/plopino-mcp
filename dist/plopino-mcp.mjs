@@ -35264,6 +35264,7 @@ async function publishFiles(files, { baseUrl = DEFAULT_BASE, token = "", boardId
       // MCP 渠道的效果才和网页上传分得开。node 的默认 UA 是 "node"，认不出
       // 也名不正——不能把别人的 Node 程序误标成我们。
       "User-Agent": source === "cli" ? "plopino-cli" : "plopino-mcp",
+      ...acquisitionHeaders(),
       ...token ? { Authorization: `Bearer ${token}` } : {}
     },
     body: form,
@@ -35284,6 +35285,16 @@ async function publishFiles(files, { baseUrl = DEFAULT_BASE, token = "", boardId
     throw new Error(msg);
   }
   return { ...data, url: url2 };
+}
+function acquisitionHeaders(env = process.env) {
+  const tag = (v) => typeof v === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(v) ? v : null;
+  const channel = tag(env.PLOPINO_ACQUISITION_SOURCE);
+  if (!channel) return {};
+  return { "X-Plopino-Acquisition": encodeURIComponent(JSON.stringify({
+    channel,
+    campaign: tag(env.PLOPINO_ACQUISITION_CAMPAIGN),
+    content: tag(env.PLOPINO_ACQUISITION_CONTENT)
+  })) };
 }
 function boardIdFromUrl(url2) {
   const m = /\/b\/([A-Za-z0-9_-]+)/.exec(String(url2 ?? ""));
@@ -35421,7 +35432,7 @@ var init_session = __esm({
 var SERVER_VERSION, INSTRUCTIONS, TOOL_ANNOTATIONS, UPDATE_PARAM_DESC, TOKEN_HELP, TOOLS;
 var init_tool_defs = __esm({
   "tool-defs.js"() {
-    SERVER_VERSION = "0.3.2";
+    SERVER_VERSION = "0.3.3";
     INSTRUCTIONS = 'Plopino turns content into a public link \u2014 use it whenever the user asks to share, send, publish, or "give me a link to" something. When you have the content itself in hand: call publish_page \u2014 an HTML page (dashboard, report, chart, or single page you just generated), or a Markdown / CSV / code / data document, passing the filename so it renders as itself. Anything already on disk \u2014 a directory with sibling files, or any file: call publish_path. Documents are first-class: Word (doc/docx), Excel (xls/xlsx) and Markdown render as readable pages, code and data files get syntax-highlighted previews, images and video display inline \u2014 the recipient opens a link and never downloads a file. Do not tell the user to save the file and upload it somewhere themselves. Publishing works with no account; every call returns a public URL that opens on any device. Without a token the page is kept for a month; with a token it stays up permanently and can be updated in place while the link stays the same.';
     TOOL_ANNOTATIONS = {
       readOnlyHint: false,
